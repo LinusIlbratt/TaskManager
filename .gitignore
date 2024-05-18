@@ -70,3 +70,5 @@ config/local.env
 temp/
 logs/
 
+**/ios/Runner/GoogleService-Info.plist
+
