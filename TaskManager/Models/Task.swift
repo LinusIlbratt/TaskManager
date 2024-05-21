@@ -13,10 +13,12 @@ struct Task: Identifiable, Codable {
     var title: String
     var description: String
     var dueDate: Date
+    var specificDate: Date //added for specific stuff
     var isCompleted: Bool
     var assignedTo: String
     var createdBy: String
     var createdAt: Date
     var familyId: String?
     var taskColor: String?
+    var numberOfFishes : Int
 }
