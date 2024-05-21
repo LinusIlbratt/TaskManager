@@ -10,6 +10,7 @@ import Firebase
 
 struct ContentView: View {
     
+    
     @State var signedIn = false
     
     
@@ -17,13 +18,35 @@ struct ContentView: View {
         if (!signedIn) {
             SignInView(signedIn : $signedIn)
         } else {
-            VStack {
-                Image(systemName: "globe")
-                    .imageScale(.large)
-                    .foregroundStyle(.tint)
-                Text("Hello, world!")
+            TabView {
+                NavigationStack {
+                    TaskListView()
+                }
+                .tabItem {
+                    Label("List", systemImage: "list.dash")
+                        .font(.title)
+                        .padding()
+                }
+                
+                NavigationStack {
+                    // Marcus view
+                }
+                .tabItem {
+                    Label("Scheduele", systemImage: "pencil")
+                        .font(.title)
+                        .padding()
+                }
+                
+                NavigationStack {
+                    // ProfileView
+                }
+                .tabItem {
+                    Label("User", systemImage: "person.fill")
+                        .font(.title)
+                        .padding()
+                }
             }
-            .padding()
+            
         }
     }
 }
