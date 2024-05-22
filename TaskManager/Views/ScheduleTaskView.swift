@@ -17,10 +17,13 @@ struct ScheduleTaskView: View {
             Color(.systemGray6)
                 .edgesIgnoringSafeArea(.all)
             
-            VStack(spacing: 20) {
-                Text("Schedule Task")
-                    .font(.headline)
-                    .padding()
+            VStack(spacing: 15) {
+                HStack {
+                    Text("Schedule Task")
+                        .font(.headline)
+                    Spacer()
+                }
+                .padding(.horizontal)
 
                 // Task information
                 TaskInfoView()
@@ -129,49 +132,60 @@ struct ScheduleTaskView: View {
                         .shadow(radius: 5)
                 )
                 .padding(.horizontal)
+                
 
                 // Buttons
                 VStack(spacing: 10) {
                     Button(action: {}) {
                         Text("Set Alarm")
-                            .font(.headline)
+                            .font(.caption)
                             .foregroundColor(.black)
                             .frame(maxWidth: .infinity)
+                            .frame(maxHeight: 5)
                             .padding()
                             .background(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color.black, lineWidth: 1)
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .fill(Color.white .opacity(0.5))
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .stroke(Color.black, lineWidth: 1)
+                                }
                             )
                     }
-                    .padding(.horizontal, 40)
-
+                    
                     Button(action: {}) {
                         Text("Assign family member")
-                            .font(.headline)
+                            .font(.caption)
                             .foregroundColor(.black)
                             .frame(maxWidth: .infinity)
+                            .frame(maxHeight: 5)
                             .padding()
                             .background(
-                                RoundedRectangle(cornerRadius: 10)
-                                    .stroke(Color.black, lineWidth: 1)
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .fill(Color.white .opacity(0.5))
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .stroke(Color.black, lineWidth: 1)
+                                }
                             )
                     }
-                    .padding(.horizontal, 40)
+                    
+                    Spacer()
 
                     Button(action: {}) {
                         Text("Schedule Task")
                             .font(.headline)
                             .foregroundColor(.black)
                             .frame(maxWidth: .infinity)
+                            .frame(maxHeight: 15)
                             .padding()
                             .background(
-                                RoundedRectangle(cornerRadius: 10)
+                                RoundedRectangle(cornerRadius: 4)
                                     .stroke(Color.black, lineWidth: 1)
                             )
                     }
-                    .padding(.horizontal, 40)
                 }
-                .padding(.horizontal)
+                .padding(.horizontal, 40)
             }
             .padding(.vertical)
         }
