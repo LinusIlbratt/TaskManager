@@ -245,6 +245,14 @@ extension ScheduleTaskView {
     }
 }
 
+class FirestoreService: ObservableObject {
+    @Published var selectedTask: Task?
+    
+    func updateTaskWithDates(dates: [Date]) {
+        selectedTask?.dueDates = dates
+    }
+}
+
 struct TaskInfoView: View {
     var body: some View {
         HStack(alignment: .center) {
