@@ -9,7 +9,7 @@ import SwiftUI
 
 struct ScheduleTaskView: View {
     @State private var currentDate = Date()
-    @State private var selectedDate: Date? = nil
+    @State private var selectedDates: Set<Date> = []
     
     var body: some View {
         ZStack {
@@ -84,26 +84,40 @@ struct ScheduleTaskView: View {
                         
                         ForEach(self.daysInMonth(), id: \.self) { date in
                             ZStack {
-                                if self.isCurrentDate(date) || selectedDate == date {
+                                if selectedDates.contains(date) {
                                     RoundedRectangle(cornerRadius: 8)
                                         .fill(Color.blue)
                                 } else {
                                     RoundedRectangle(cornerRadius: 8)
                                         .fill(Color.clear)
                                 }
-                                
+
+                                if self.isCurrentDate(date) {
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(Color.blue, lineWidth: 2)
+                                }
+
                                 Text("\(self.dayString(from: date))")
-                                    .foregroundColor(self.isCurrentDate(date) || selectedDate == date ? .white : (date < Date() ? .gray : .black))
+                                    .foregroundColor(
+                                        selectedDates.contains(date) ? .white :
+                                        self.isCurrentDate(date) ? .black :
+                                        (date < Date() ? .gray : .black)
+                                    )
                                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                                     .padding(4)
                                     .background(Color.clear)
                                     .onTapGesture {
-                                        if date >= Date() {
-                                            selectedDate = date
+                                        if date >= Calendar.current.startOfDay(for: Date()) {
+                                            if selectedDates.contains(date) {
+                                                selectedDates.remove(date)
+                                            } else {
+                                                selectedDates.insert(date)
+                                            }
                                         }
                                     }
                                     .layoutPriority(1)
                             }
+
                             .frame(minWidth: 40, maxWidth: .infinity, minHeight: 40, maxHeight: 40)
                         }
                     }
