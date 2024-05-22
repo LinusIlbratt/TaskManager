@@ -9,31 +9,23 @@ import SwiftUI
 
 struct CalendarView: View {
     
-    let days: [CalendarDay] = [
-        CalendarDay(day: 13, weekday: "Mon", isToday: false, hasEvents: 2),
-        CalendarDay(day: 14, weekday: "Tue", isToday: true, hasEvents: 3),
-        CalendarDay(day: 15, weekday: "Wed", isToday: false, hasEvents: 0),
-        CalendarDay(day: 16, weekday: "Thu", isToday: false, hasEvents: 1),
-        CalendarDay(day: 17, weekday: "Fri", isToday: false, hasEvents: 10),
-        CalendarDay(day: 18, weekday: "Sat", isToday: false, hasEvents: 3),
-        CalendarDay(day: 19, weekday: "Sun", isToday: false, hasEvents: 0)
-    ]
-    
-    @State private var selectedDayIndex: Int? = nil
+    @State private var days: [CalendarDay] = []
+    @State private var selectedDayIndex: Int?
     
     var body: some View {
         VStack {
-            // Month and year header
+            //Month and year header
             HStack {
-                Text("May 2024")
+                Text(getMonthYearHeader())
                     .font(.headline)
                     .padding()
                 Spacer()
             }
             
+            //Get screen size from GeometryReader
             GeometryReader { geometry in
-                let totalSpacing: CGFloat = 80 // Total space for padding (20 on each side and 10 between each box)
-                let itemWidth = max((geometry.size.width - totalSpacing) / 7, 0) // Dynamic width calculation of each box with a fallback
+                let totalSpacing: CGFloat = 80 //Total space including padding (20 on each side and 10 between each box)
+                let itemWidth = max((geometry.size.width - totalSpacing) / 7, 0) //Dynamic width calculation of each box with a fallback
                 
                 HStack(spacing: 10) {
                     ForEach(days.indices, id: \.self) { index in
@@ -90,13 +82,52 @@ struct CalendarView: View {
             }
             .frame(height: 115)
         }
+        //when the view is shown, lets setup the current week to be displayed
+        .onAppear(perform: setupWeek)
     }
+    
+    func setupWeek() {
+        let calendar = Calendar.current
+        let today = Date()
+        let weekday = calendar.component(.weekday, from: today)
+        
+        //Adjusting to get Monday as start day of the week as normal people
+        let startOfWeek = calendar.date(byAdding: .day, value: -(weekday - 2), to: today)!
+        
+        var weekDays: [CalendarDay] = []
+        for i in 0..<7 {
+            if let date = calendar.date(byAdding: .day, value: i, to: startOfWeek) {
+                let day = calendar.component(.day, from: date)
+                let isToday = calendar.isDate(date, inSameDayAs: today)
+                let weekdaySymbol = calendar.shortWeekdaySymbols[calendar.component(.weekday, from: date) - 1]
+                weekDays.append(CalendarDay(day: day, weekday: weekdaySymbol, isToday: isToday, hasEvents: 2)) // Use a fixed number for hasEvents
+            }
+        }
+        self.days = weekDays
+        self.selectedDayIndex = weekDays.firstIndex(where: { $0.isToday })
+    }
+    
+    //Get the month and year for the header
+    func getMonthYearHeader() -> String {
+        let calendar = Calendar.current
+        let today = Date()
+        let month = calendar.component(.month, from: today)
+        let year = calendar.component(.year, from: today)
+        
+        let dateFormatter = DateFormatter()
+        let monthName = dateFormatter.monthSymbols[month - 1]
+        
+        return "\(monthName) \(year)"
+    }
+        
+    
 }
 
+//Struct to handle calendarview on top of task list
 struct CalendarDay: Identifiable {
     var id = UUID()
     var day: Int
     var weekday: String
     var isToday: Bool
-    var hasEvents: Int // Number of events
+    var hasEvents: Int //Number of tasks.. perhaps remove?
 }

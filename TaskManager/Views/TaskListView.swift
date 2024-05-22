@@ -13,61 +13,13 @@ import FirebaseFirestoreSwift
 //This view acts as start page in the app, shows calendar view + things to do today
 struct TaskListView: View {
     
-    var listOfTasks = [Task]()
-    
-    init() {
-        
-        //Mockup data until firebase is up an running
-        listOfTasks = [
-            Task(
-                id: UUID().uuidString,
-                title: "Clean your bedroom",
-                description: "Tidy up the room, dust surfaces, and vacuum the floor.",
-                dueDate: Calendar.current.date(byAdding: .day, value: 3, to: Date())!,
-                specificDate: Calendar.current.date(byAdding: .day, value: 3, to: Date())!,
-                isCompleted: false,
-                assignedTo: "John Doe",
-                createdBy: "Jane Doe",
-                createdAt: Date(),
-                familyId: "Family123",
-                taskColor: "Blue",
-                numberOfFishes: 20
-            ),
-            Task(
-                id: UUID().uuidString,
-                title: "Grocery shopping",
-                description: "Buy groceries for the week including vegetables, fruits, and dairy products.",
-                dueDate: Calendar.current.date(byAdding: .day, value: 1, to: Date())!,
-                specificDate: Calendar.current.date(byAdding: .day, value: 3, to: Date())!,
-                isCompleted: false,
-                assignedTo: "Mary Johnson",
-                createdBy: "Jane Doe",
-                createdAt: Date(),
-                familyId: "Family123",
-                taskColor: "Green",
-                numberOfFishes: 25
-            ),
-            Task(
-                id: UUID().uuidString,
-                title: "Car maintenance",
-                description: "Take the car for an oil change and tire rotation.",
-                dueDate: Calendar.current.date(byAdding: .day, value: 7, to: Date())!,
-                specificDate: Calendar.current.date(byAdding: .day, value: 3, to: Date())!,
-                isCompleted: false,
-                assignedTo: "John Doe",
-                createdBy: "Jane Doe",
-                createdAt: Date(),
-                familyId: "Family123",
-                taskColor: "Red",
-                numberOfFishes: 21
-            )
-        ]
-    }
+    //Get the data from our VM
+    @StateObject private var taskVM = TaskViewModel()
     
     var body: some View {
-        
+            
+            //Include calendarView
             CalendarView()
-        
         
         Spacer()
         Divider()
@@ -78,12 +30,12 @@ struct TaskListView: View {
             
             //List of to-dos
             List {
-                ForEach (listOfTasks) { task in
+                ForEach (taskVM.allTasksForThisUser) { task in
                     
+                    //Card for each task
                     TaskCardView(task: task)
                         .listRowSeparator(.hidden)
                         .listRowBackground(Color.clear)
-                                
                 }
             }
             .listStyle(PlainListStyle())
@@ -107,7 +59,7 @@ struct TaskCardView: View {
                         .frame(width: 70, height: 70)
                         
                     VStack {
-                        Text("20")
+                        Text("\(task.numberOfFishes)")
                             .font(.title)
                             .foregroundColor(.white)
                             .padding(.top, 10)
@@ -131,7 +83,8 @@ struct TaskCardView: View {
                 Text(task.title)
                         .font(.headline)
                 
-                Text("Due 05/14/24")
+                //Print formatted due date
+                Text(formatDueDate(date: task.dueDate))
                     .font(.subheadline)
                     .foregroundColor(.gray)
                
@@ -157,5 +110,12 @@ struct TaskCardView: View {
             RoundedRectangle(cornerRadius: 10)
                 .stroke(Color.gray, lineWidth: 1)
         )
+    }
+    
+    //Format date in this struct direct
+    func formatDueDate(date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd/MM/yy"
+        return "Due \(formatter.string(from: date))"
     }
 }
