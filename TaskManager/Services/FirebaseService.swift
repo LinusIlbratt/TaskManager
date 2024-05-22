@@ -10,7 +10,8 @@ import FirebaseFirestore
 import FirebaseFirestoreSwift
 import Combine
 
-class FirestoreService: ObservableObject {
+class FirebaseService: ObservableObject {
+    @Published var selectedTask: Task?
     private var db = Firestore.firestore()
     
     @Published var tasks: [Task] = []
@@ -38,5 +39,9 @@ class FirestoreService: ObservableObject {
             
             print("Fetched \(self.tasks.count) tasks") // Debugging line
         }
+    }
+    
+    func updateTaskWithDates(dates: [Date]) {
+        selectedTask?.dueDates = dates
     }
 }
