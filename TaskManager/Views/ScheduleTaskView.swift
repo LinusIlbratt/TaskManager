@@ -143,7 +143,7 @@ struct ScheduleTaskView: View {
                                     .stroke(Color.black, lineWidth: 1)
                             )
                     }
-                    .padding(.horizontal, 40) // Add horizontal padding to buttons
+                    .padding(.horizontal, 40)
 
                     Button(action: {}) {
                         Text("Assign family member")
@@ -156,7 +156,7 @@ struct ScheduleTaskView: View {
                                     .stroke(Color.black, lineWidth: 1)
                             )
                     }
-                    .padding(.horizontal, 40) // Add horizontal padding to buttons
+                    .padding(.horizontal, 40)
 
                     Button(action: {}) {
                         Text("Schedule Task")
@@ -169,7 +169,7 @@ struct ScheduleTaskView: View {
                                     .stroke(Color.black, lineWidth: 1)
                             )
                     }
-                    .padding(.horizontal, 40) // Add horizontal padding to buttons
+                    .padding(.horizontal, 40)
                 }
                 .padding(.horizontal)
             }
@@ -182,7 +182,7 @@ extension ScheduleTaskView {
     
     private var calendar: Calendar {
         var calendar = Calendar.current
-        calendar.firstWeekday = 2 // Måndag
+        calendar.firstWeekday = 2
         return calendar
     }
     
@@ -203,7 +203,7 @@ extension ScheduleTaskView {
             return 0
         }
         let weekday = calendar.component(.weekday, from: firstOfMonth)
-        return (weekday + 5) % 7 // Justering för att veckor börjar på måndag
+        return (weekday + 5) % 7 // adjust so all weeks thats on monday
     }
     
     private func incrementMonth() {
