@@ -10,7 +10,32 @@ import SwiftUI
 struct ScheduleTaskView: View {
     @State private var currentDate = Date()
     
-    
+    private var calendar: Calendar {
+            var calendar = Calendar.current
+            calendar.firstWeekday = 2
+            return calendar
+        }
+        
+        private var daysInMonth: [Date] {
+            guard let range = calendar.range(of: .day, in: .month, for: currentDate) else {
+                return []
+            }
+            return range.compactMap { day -> Date? in
+                var components = calendar.dateComponents([.year, .month], from: currentDate)
+                components.day = day
+                return calendar.date(from: components)
+            }
+        }
+        
+        private var firstWeekday: Int {
+            let components = calendar.dateComponents([.year, .month], from: currentDate)
+            guard let firstOfMonth = calendar.date(from: components) else {
+                return 0
+            }
+            let weekday = calendar.component(.weekday, from: firstOfMonth)
+            return (weekday + 5) % 7
+        }
+
     
     var body: some View {
         ZStack {
@@ -32,8 +57,74 @@ struct ScheduleTaskView: View {
                     )
                     .padding(.horizontal)
 
+                // Calendar
+                VStack {
+                    HStack {
+                        Button(action: {
+                            withAnimation {
+                                currentDate = calendar.date(byAdding: .month, value: -1, to: currentDate) ?? currentDate
+                            }
+                        }) {
+                            Image(systemName: "chevron.left")
+                                .padding()
+                        }
+                        
+                        Spacer()
+                        
+                        Text("\(monthYearFormatter.string(from: currentDate))")
+                            .font(.headline)
+                        
+                        Spacer()
+                        
+                        Button(action: {
+                            withAnimation {
+                                currentDate = calendar.date(byAdding: .month, value: 1, to: currentDate) ?? currentDate
+                            }
+                        }) {
+                            Image(systemName: "chevron.right")
+                                .padding()
+                        }
+                    }
+                    
+                    HStack {
+                        ForEach(["M", "T", "O", "T", "F", "L", "S"], id: \.self) { day in
+                            Text(day)
+                                .frame(maxWidth: .infinity)
+                                .font(.caption)
+                        }
+                    }
+                    
+                    let columns = Array(repeating: GridItem(.flexible()), count: 7)
+                    
+                    LazyVGrid(columns: columns, spacing: 10) {
+                        ForEach(0..<firstWeekday, id: \.self) { _ in
+                            Text("")
+                                .frame(maxWidth: .infinity)
+                        }
+                        
+                        ForEach(daysInMonth, id: \.self) { date in
+                            Text("\(calendar.component(.day, from: date))")
+                                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                .padding()
+                                .background(
+                                    calendar.isDate(date, inSameDayAs: Date()) ? Color.blue : Color.clear
+                                )
+                                .cornerRadius(8)
+                                .foregroundColor(calendar.isDate(date, inSameDayAs: Date()) ? .white : .black)
+                                .frame(width: 55, height: 40)
+                        }
+                    }
+                }
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.white)
+                        .shadow(radius: 5)
+                )
+                .padding(.horizontal)
                 
-
+                
+                
                 // Buttons
                 VStack(spacing: 10) {
                     Button(action: {}) {
@@ -81,7 +172,12 @@ struct ScheduleTaskView: View {
         }
     }
 
-   
+    private let monthYearFormatter: DateFormatter = {
+           let formatter = DateFormatter()
+           formatter.dateFormat = "MMMM yyyy"
+           return formatter
+       }()
+
 }
 
 struct TaskInfoView: View {
