@@ -24,36 +24,42 @@ struct TaskListView: View {
                 title: "Clean your bedroom",
                 description: "Tidy up the room, dust surfaces, and vacuum the floor.",
                 dueDate: Calendar.current.date(byAdding: .day, value: 3, to: Date())!,
+                specificDate: Calendar.current.date(byAdding: .day, value: 3, to: Date())!,
                 isCompleted: false,
                 assignedTo: "John Doe",
                 createdBy: "Jane Doe",
                 createdAt: Date(),
                 familyId: "Family123",
-                taskColor: "Blue"
+                taskColor: "Blue",
+                numberOfFishes: 20
             ),
             Task(
                 id: UUID().uuidString,
                 title: "Grocery shopping",
                 description: "Buy groceries for the week including vegetables, fruits, and dairy products.",
                 dueDate: Calendar.current.date(byAdding: .day, value: 1, to: Date())!,
+                specificDate: Calendar.current.date(byAdding: .day, value: 3, to: Date())!,
                 isCompleted: false,
                 assignedTo: "Mary Johnson",
                 createdBy: "Jane Doe",
                 createdAt: Date(),
                 familyId: "Family123",
-                taskColor: "Green"
+                taskColor: "Green",
+                numberOfFishes: 25
             ),
             Task(
                 id: UUID().uuidString,
                 title: "Car maintenance",
                 description: "Take the car for an oil change and tire rotation.",
                 dueDate: Calendar.current.date(byAdding: .day, value: 7, to: Date())!,
+                specificDate: Calendar.current.date(byAdding: .day, value: 3, to: Date())!,
                 isCompleted: false,
                 assignedTo: "John Doe",
                 createdBy: "Jane Doe",
                 createdAt: Date(),
                 familyId: "Family123",
-                taskColor: "Red"
+                taskColor: "Red",
+                numberOfFishes: 21
             )
         ]
     }
