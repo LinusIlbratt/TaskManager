@@ -9,38 +9,12 @@ import SwiftUI
 
 struct ScheduleTaskView: View {
     @State private var currentDate = Date()
-    
-    private var calendar: Calendar {
-            var calendar = Calendar.current
-            calendar.firstWeekday = 2
-            return calendar
-        }
-        
-        private var daysInMonth: [Date] {
-            guard let range = calendar.range(of: .day, in: .month, for: currentDate) else {
-                return []
-            }
-            return range.compactMap { day -> Date? in
-                var components = calendar.dateComponents([.year, .month], from: currentDate)
-                components.day = day
-                return calendar.date(from: components)
-            }
-        }
-        
-        private var firstWeekday: Int {
-            let components = calendar.dateComponents([.year, .month], from: currentDate)
-            guard let firstOfMonth = calendar.date(from: components) else {
-                return 0
-            }
-            let weekday = calendar.component(.weekday, from: firstOfMonth)
-            return (weekday + 5) % 7
-        }
-
+    @State private var selectedDate: Date? = nil
     
     var body: some View {
         ZStack {
             // Background color
-            Color(.systemGray5)
+            Color(.systemGray6)
                 .edgesIgnoringSafeArea(.all)
             
             VStack(spacing: 20) {
@@ -68,7 +42,7 @@ struct ScheduleTaskView: View {
                     HStack {
                         Button(action: {
                             withAnimation {
-                                currentDate = calendar.date(byAdding: .month, value: -1, to: currentDate) ?? currentDate
+                                self.decrementMonth()
                             }
                         }) {
                             Image(systemName: "chevron.left")
@@ -77,14 +51,14 @@ struct ScheduleTaskView: View {
                         
                         Spacer()
                         
-                        Text("\(monthYearFormatter.string(from: currentDate))")
+                        Text("\(self.monthYearString(from: currentDate))")
                             .font(.headline)
                         
                         Spacer()
                         
                         Button(action: {
                             withAnimation {
-                                currentDate = calendar.date(byAdding: .month, value: 1, to: currentDate) ?? currentDate
+                                self.incrementMonth()
                             }
                         }) {
                             Image(systemName: "chevron.right")
@@ -103,21 +77,35 @@ struct ScheduleTaskView: View {
                     let columns = Array(repeating: GridItem(.flexible()), count: 7)
                     
                     LazyVGrid(columns: columns, spacing: 10) {
-                        ForEach(0..<firstWeekday, id: \.self) { _ in
+                        ForEach(0..<self.firstWeekday(), id: \.self) { _ in
                             Text("")
                                 .frame(maxWidth: .infinity)
                         }
                         
-                        ForEach(daysInMonth, id: \.self) { date in
-                            Text("\(calendar.component(.day, from: date))")
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                .padding()
-                                .background(
-                                    calendar.isDate(date, inSameDayAs: Date()) ? Color.blue : Color.clear
-                                )
-                                .cornerRadius(8)
-                                .foregroundColor(calendar.isDate(date, inSameDayAs: Date()) ? .white : .black)
-                                .frame(width: 55, height: 40)
+                        ForEach(self.daysInMonth(), id: \.self) { date in
+                            ZStack {
+                                if self.isCurrentDate(date) || selectedDate == date {
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(Color.blue)
+                                } else if date < Date() {
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(Color.gray.opacity(0.3))
+                                } else {
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(Color.clear)
+                                }
+                                
+                                Text("\(self.dayString(from: date))")
+                                    .foregroundColor(self.isCurrentDate(date) || selectedDate == date ? .white : (date < Date() ? .gray : .black))
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                    .padding()
+                                    .onTapGesture {
+                                        if date >= Date() {
+                                            selectedDate = date
+                                        }
+                                    }
+                                    .frame(width: 55, height: 40) // Set fixed frame to handle single and double digit days
+                            }
                         }
                     }
                 }
@@ -128,9 +116,7 @@ struct ScheduleTaskView: View {
                         .shadow(radius: 5)
                 )
                 .padding(.horizontal)
-                
-                
-                
+
                 // Buttons
                 VStack(spacing: 10) {
                     Button(action: {}) {
@@ -138,53 +124,98 @@ struct ScheduleTaskView: View {
                             .font(.headline)
                             .foregroundColor(.black)
                             .frame(maxWidth: .infinity)
-                            .frame(height: 10)
                             .padding()
                             .background(
-                                RoundedRectangle(cornerRadius: 20)
+                                RoundedRectangle(cornerRadius: 10)
                                     .stroke(Color.black, lineWidth: 1)
                             )
                     }
+                    .padding(.horizontal, 40) // Add horizontal padding to buttons
 
                     Button(action: {}) {
                         Text("Assign family member")
                             .font(.headline)
                             .foregroundColor(.black)
                             .frame(maxWidth: .infinity)
-                            .frame(height: 10)
                             .padding()
                             .background(
-                                RoundedRectangle(cornerRadius: 20)
+                                RoundedRectangle(cornerRadius: 10)
                                     .stroke(Color.black, lineWidth: 1)
                             )
                     }
-                    Spacer()
+                    .padding(.horizontal, 40) // Add horizontal padding to buttons
 
                     Button(action: {}) {
                         Text("Schedule Task")
                             .font(.headline)
                             .foregroundColor(.black)
                             .frame(maxWidth: .infinity)
-                            .frame(maxHeight: 30)
                             .padding()
                             .background(
-                                RoundedRectangle(cornerRadius: 4)
+                                RoundedRectangle(cornerRadius: 10)
                                     .stroke(Color.black, lineWidth: 1)
                             )
                     }
+                    .padding(.horizontal, 40) // Add horizontal padding to buttons
                 }
-                .padding(.horizontal, 35)
+                .padding(.horizontal)
             }
             .padding(.vertical)
         }
     }
+}
 
-    private let monthYearFormatter: DateFormatter = {
-           let formatter = DateFormatter()
-           formatter.dateFormat = "MMMM yyyy"
-           return formatter
-       }()
-
+extension ScheduleTaskView {
+    
+    private var calendar: Calendar {
+        var calendar = Calendar.current
+        calendar.firstWeekday = 2 // Måndag
+        return calendar
+    }
+    
+    private func daysInMonth() -> [Date] {
+        guard let range = calendar.range(of: .day, in: .month, for: currentDate) else {
+            return []
+        }
+        return range.compactMap { day -> Date? in
+            var components = calendar.dateComponents([.year, .month], from: currentDate)
+            components.day = day
+            return calendar.date(from: components)
+        }
+    }
+    
+    private func firstWeekday() -> Int {
+        let components = calendar.dateComponents([.year, .month], from: currentDate)
+        guard let firstOfMonth = calendar.date(from: components) else {
+            return 0
+        }
+        let weekday = calendar.component(.weekday, from: firstOfMonth)
+        return (weekday + 5) % 7 // Justering för att veckor börjar på måndag
+    }
+    
+    private func incrementMonth() {
+        currentDate = calendar.date(byAdding: .month, value: 1, to: currentDate) ?? currentDate
+    }
+    
+    private func decrementMonth() {
+        currentDate = calendar.date(byAdding: .month, value: -1, to: currentDate) ?? currentDate
+    }
+    
+    private func monthYearString(from date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM yyyy"
+        return formatter.string(from: date)
+    }
+    
+    private func dayString(from date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "d"
+        return formatter.string(from: date)
+    }
+    
+    private func isCurrentDate(_ date: Date) -> Bool {
+        calendar.isDate(date, inSameDayAs: Date())
+    }
 }
 
 struct TaskInfoView: View {
@@ -224,3 +255,4 @@ struct ScheduleTaskView_Previews: PreviewProvider {
         ScheduleTaskView()
     }
 }
+
