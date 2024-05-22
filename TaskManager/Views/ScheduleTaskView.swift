@@ -87,9 +87,6 @@ struct ScheduleTaskView: View {
                                 if self.isCurrentDate(date) || selectedDate == date {
                                     RoundedRectangle(cornerRadius: 8)
                                         .fill(Color.blue)
-                                } else if date < Date() {
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .fill(Color.gray.opacity(0.3))
                                 } else {
                                     RoundedRectangle(cornerRadius: 8)
                                         .fill(Color.clear)
@@ -98,14 +95,16 @@ struct ScheduleTaskView: View {
                                 Text("\(self.dayString(from: date))")
                                     .foregroundColor(self.isCurrentDate(date) || selectedDate == date ? .white : (date < Date() ? .gray : .black))
                                     .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                    .padding()
+                                    .padding(4)
+                                    .background(Color.clear)
                                     .onTapGesture {
                                         if date >= Date() {
                                             selectedDate = date
                                         }
                                     }
-                                    .frame(width: 55, height: 40) // Set fixed frame to handle single and double digit days
+                                    .layoutPriority(1)
                             }
+                            .frame(minWidth: 40, maxWidth: .infinity, minHeight: 40, maxHeight: 40)
                         }
                     }
                 }
