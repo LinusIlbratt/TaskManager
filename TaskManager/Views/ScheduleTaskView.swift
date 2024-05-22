@@ -10,6 +10,9 @@ import SwiftUI
 struct ScheduleTaskView: View {
     @State private var currentDate = Date()
     @State private var selectedDates: Set<Date> = []
+    @StateObject private var firebaseService = FirebaseService()
+    
+    
     
     var body: some View {
         ZStack {
@@ -245,15 +248,9 @@ extension ScheduleTaskView {
     }
 }
 
-class FirestoreService: ObservableObject {
-    @Published var selectedTask: Task?
-    
-    func updateTaskWithDates(dates: [Date]) {
-        selectedTask?.dueDates = dates
-    }
-}
-
 struct TaskInfoView: View {
+    var task: Task?
+
     var body: some View {
         HStack(alignment: .center) {
             VStack {
@@ -270,12 +267,21 @@ struct TaskInfoView: View {
             }
 
             VStack(alignment: .leading, spacing: 5) {
-                Text("Cleaning")
-                    .font(.caption)
-                    .foregroundColor(.gray)
+                if let task = task {
+                    Text(task.title)
+                        .font(.caption)
+                        .foregroundColor(.gray)
 
-                Text("Clean your bedroom")
-                    .font(.headline)
+                    Text(task.title)
+                        .font(.headline)
+                    
+                    Text(task.description)
+                        .font(.caption)
+                } else {
+                    Text("No task selected")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
             }
             .padding(.leading, 10)
 
@@ -284,6 +290,7 @@ struct TaskInfoView: View {
         .padding()
     }
 }
+
 
 struct ScheduleTaskView_Previews: PreviewProvider {
     static var previews: some View {
