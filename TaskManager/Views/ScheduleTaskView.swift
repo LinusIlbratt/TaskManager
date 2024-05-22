@@ -40,7 +40,7 @@ struct ScheduleTaskView: View {
     var body: some View {
         ZStack {
             // Background color
-            Color(UIColor(red: 242/255, green: 242/255, blue: 242/255, alpha: 1))
+            Color(.systemGray5)
                 .edgesIgnoringSafeArea(.all)
             
             VStack(spacing: 20) {
@@ -50,12 +50,18 @@ struct ScheduleTaskView: View {
 
                 // Task information
                 TaskInfoView()
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 60)
                     .padding()
                     .background(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color.gray, lineWidth: 1)
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(Color.white)
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color.gray, lineWidth: 1)
+                        }
                     )
-                    .padding(.horizontal)
+                    .padding(.horizontal, 40)
 
                 // Calendar
                 VStack {
@@ -159,9 +165,10 @@ struct ScheduleTaskView: View {
                             .font(.headline)
                             .foregroundColor(.black)
                             .frame(maxWidth: .infinity)
+                            .frame(maxHeight: 30)
                             .padding()
                             .background(
-                                RoundedRectangle(cornerRadius: 2)
+                                RoundedRectangle(cornerRadius: 4)
                                     .stroke(Color.black, lineWidth: 1)
                             )
                     }
