@@ -29,7 +29,7 @@ struct ContentView: View {
                 }
                 
                 NavigationStack {
-                    // Marcus view
+                    TaskView()
                 }
                 .tabItem {
                     Label("Scheduele", systemImage: "pencil")
