@@ -107,12 +107,16 @@ class TaskViewModel: ObservableObject {
     private func filterTasks() {
         if let selectedDate = selectedDate {
             allTasksForThisUser = firestoreServices.userTasks.filter { task in
-                calendar.isDate(task.dueDate, inSameDayAs: selectedDate)
+                if let dueDate = task.dueDates?.first {
+                    return calendar.isDate(dueDate, inSameDayAs: selectedDate)
+                }
+                return false
             }
         } else {
             allTasksForThisUser = firestoreServices.userTasks
         }
     }
+
     
     func updateTaskCompletion(taskId: String, isCompleted: Bool) {
         if let index = allTasksForThisUser.firstIndex(where: { $0.id == taskId }) {

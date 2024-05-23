@@ -10,6 +10,7 @@
 		1B51E9D32BFF45D000313625 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B51E9D22BFF45D000313625 /* ProfileView.swift */; };
 		1B51E9D52BFF47A400313625 /* CalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B51E9D42BFF47A400313625 /* CalendarView.swift */; };
 		1B51E9D92BFF507600313625 /* TaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B51E9D82BFF507600313625 /* TaskView.swift */; };
+		1B51E9DB2BFF593200313625 /* ScheduleTaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B51E9DA2BFF593200313625 /* ScheduleTaskView.swift */; };
 		1B971E922BF4BCDF0059246E /* TaskManagerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B971E912BF4BCDF0059246E /* TaskManagerApp.swift */; };
 		1B971E942BF4BCDF0059246E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B971E932BF4BCDF0059246E /* ContentView.swift */; };
 		1B971E962BF4BCE10059246E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1B971E952BF4BCE10059246E /* Assets.xcassets */; };
@@ -49,6 +50,7 @@
 		1B51E9D22BFF45D000313625 /* ProfileView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		1B51E9D42BFF47A400313625 /* CalendarView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CalendarView.swift; sourceTree = "<group>"; };
 		1B51E9D82BFF507600313625 /* TaskView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TaskView.swift; sourceTree = "<group>"; };
+		1B51E9DA2BFF593200313625 /* ScheduleTaskView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScheduleTaskView.swift; sourceTree = "<group>"; };
 		1B971E8E2BF4BCDF0059246E /* TaskManager.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TaskManager.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1B971E912BF4BCDF0059246E /* TaskManagerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskManagerApp.swift; sourceTree = "<group>"; };
 		1B971E932BF4BCDF0059246E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -167,6 +169,7 @@
 		1B971EBD2BF4C5F60059246E /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				1B51E9DA2BFF593200313625 /* ScheduleTaskView.swift */,
 				1B51E9D82BFF507600313625 /* TaskView.swift */,
 				1B51E9D42BFF47A400313625 /* CalendarView.swift */,
 				1B51E9D22BFF45D000313625 /* ProfileView.swift */,
@@ -344,6 +347,7 @@
 				1B971E942BF4BCDF0059246E /* ContentView.swift in Sources */,
 				1B51E9D92BFF507600313625 /* TaskView.swift in Sources */,
 				1B971EC72BF4CAE10059246E /* TaskListView.swift in Sources */,
+				1B51E9DB2BFF593200313625 /* ScheduleTaskView.swift in Sources */,
 				1B971ECB2BF4CB5B0059246E /* DateFormatter.swift in Sources */,
 				1B51E9D52BFF47A400313625 /* CalendarView.swift in Sources */,
 				1B971EC32BF4CA250059246E /* TaskViewModel.swift in Sources */,
