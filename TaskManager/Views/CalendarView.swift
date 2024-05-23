@@ -9,48 +9,44 @@ import SwiftUI
 
 struct CalendarView: View {
     
-    let days: [CalendarDay] = [
-        CalendarDay(day: 13, weekday: "Mon", isToday: false, hasEvents: 2),
-        CalendarDay(day: 14, weekday: "Tue", isToday: true, hasEvents: 3),
-        CalendarDay(day: 15, weekday: "Wed", isToday: false, hasEvents: 0),
-        CalendarDay(day: 16, weekday: "Thu", isToday: false, hasEvents: 1),
-        CalendarDay(day: 17, weekday: "Fri", isToday: false, hasEvents: 10),
-        CalendarDay(day: 18, weekday: "Sat", isToday: false, hasEvents: 3),
-        CalendarDay(day: 19, weekday: "Sun", isToday: false, hasEvents: 0),
-        CalendarDay(day: 20, weekday: "Mon", isToday: false, hasEvents: 0)
-    ]
+    @State private var days: [CalendarDay] = []
+    @State private var selectedDayIndex: Int?
     
     var body: some View {
         VStack {
-            // Month and year header
+            //Month and year header
             HStack {
-                Text("May 2024")
+                Text(getMonthYearHeader())
                     .font(.headline)
                     .padding()
                 Spacer()
             }
             
-            ScrollView(.horizontal, showsIndicators: false) {
+            //Get screen size from GeometryReader
+            GeometryReader { geometry in
+                let totalSpacing: CGFloat = 80 //Total space including padding (20 on each side and 10 between each box)
+                let itemWidth = max((geometry.size.width - totalSpacing) / 7, 0) //Dynamic width calculation of each box with a fallback
                 
                 HStack(spacing: 10) {
-                    ForEach(days) { day in
+                    ForEach(days.indices, id: \.self) { index in
+                        let day = days[index]
                         VStack {
                             Text("\(day.day)")
                                 .font(.title3)
                                 .padding(.top, 5)
-                                .foregroundColor(day.isToday ? Color.white : Color.black)
+                                .foregroundColor(selectedDayIndex == index ? Color.white : Color.black)
                             Text(day.weekday)
                                 .font(.subheadline)
-                                .foregroundColor(day.isToday ? Color.white : Color.black)
+                                .foregroundColor(selectedDayIndex == index ? Color.white : Color.black)
                             
                             Spacer()
                             
-                            //allows for 2 rows of dots
+                            // Allows for 2 rows of dots
                             VStack(spacing: 2) {
                                 HStack(spacing: 2) {
                                     ForEach(0..<min(day.hasEvents, 5), id: \.self) { _ in
                                         Circle()
-                                            .fill(day.isToday ? Color.white : Color.black)
+                                            .fill(selectedDayIndex == index ? Color.white : Color.black)
                                             .frame(width: 6, height: 6)
                                     }
                                 }
@@ -58,7 +54,7 @@ struct CalendarView: View {
                                     HStack(spacing: 2) {
                                         ForEach(5..<day.hasEvents, id: \.self) { _ in
                                             Circle()
-                                                .fill(day.isToday ? Color.white : Color.black)
+                                                .fill(selectedDayIndex == index ? Color.white : Color.black)
                                                 .frame(width: 6, height: 6)
                                         }
                                     }
@@ -66,7 +62,7 @@ struct CalendarView: View {
                             }
                             .padding(.bottom, 5)
                             
-                            //If the date is today lets change color
+                            // If the date is today, change color
                             if day.isToday {
                                 Text("Today")
                                     .font(.caption)
@@ -74,23 +70,64 @@ struct CalendarView: View {
                                     .padding(.bottom, 5)
                             }
                         }
-                        .frame(width: 50, height: 100)
-                        .background(day.isToday ? Color.black : Color.gray.opacity(0.2))
+                        .frame(width: itemWidth, height: 100)
+                        .background(selectedDayIndex == index ? Color.black : Color.gray.opacity(0.2))
                         .cornerRadius(10)
+                        .onTapGesture {
+                            selectedDayIndex = index
+                        }
                     }
                 }
                 .padding(.horizontal, 10)
-                
             }
-            .frame(height: 120) //Fixed height i think
+            .frame(height: 115)
         }
+        //when the view is shown, lets setup the current week to be displayed
+        .onAppear(perform: setupWeek)
     }
+    
+    func setupWeek() {
+        let calendar = Calendar.current
+        let today = Date()
+        let weekday = calendar.component(.weekday, from: today)
+        
+        //Adjusting to get Monday as start day of the week as normal people
+        let startOfWeek = calendar.date(byAdding: .day, value: -(weekday - 2), to: today)!
+        
+        var weekDays: [CalendarDay] = []
+        for i in 0..<7 {
+            if let date = calendar.date(byAdding: .day, value: i, to: startOfWeek) {
+                let day = calendar.component(.day, from: date)
+                let isToday = calendar.isDate(date, inSameDayAs: today)
+                let weekdaySymbol = calendar.shortWeekdaySymbols[calendar.component(.weekday, from: date) - 1]
+                weekDays.append(CalendarDay(day: day, weekday: weekdaySymbol, isToday: isToday, hasEvents: 2)) // Use a fixed number for hasEvents
+            }
+        }
+        self.days = weekDays
+        self.selectedDayIndex = weekDays.firstIndex(where: { $0.isToday })
+    }
+    
+    //Get the month and year for the header
+    func getMonthYearHeader() -> String {
+        let calendar = Calendar.current
+        let today = Date()
+        let month = calendar.component(.month, from: today)
+        let year = calendar.component(.year, from: today)
+        
+        let dateFormatter = DateFormatter()
+        let monthName = dateFormatter.monthSymbols[month - 1]
+        
+        return "\(monthName) \(year)"
+    }
+        
+    
 }
 
+//Struct to handle calendarview on top of task list
 struct CalendarDay: Identifiable {
     var id = UUID()
     var day: Int
     var weekday: String
     var isToday: Bool
-    var hasEvents: Int //Number of events
+    var hasEvents: Int //Number of tasks.. perhaps remove?
 }
