@@ -83,6 +83,10 @@ class TaskViewModel: ObservableObject {
         numberOfFishes = 0
     }
     
+    func updateTaskDueDates(task: Task, dueDates: [Date]) {
+            firestoreServices.updateTaskDueDates(task: task, dueDates: dueDates)
+        }
+    
     private func bindTasks() {
         firestoreServices.$tasks
             .receive(on: DispatchQueue.main)

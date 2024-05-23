@@ -22,7 +22,7 @@ struct TaskView: View {
                 
                 ScrollView {
                     ForEach(viewModel.tasks) { task in
-                        NavigationLink(destination: ScheduleTaskView(task: task)) {
+                        NavigationLink(destination: ScheduleTaskView(viewModel: viewModel, task: task)) {
                             TaskCardView(task: task)
                                 .padding(.horizontal)
                                 .padding(.top, 5)
