@@ -11,6 +11,7 @@ struct ScheduleTaskView: View {
     @State private var currentDate = Date()
     @State private var selectedDates: Set<Date> = []
     @StateObject private var firebaseService = FirebaseService()
+    var task: Task?
     
     
     
@@ -29,7 +30,7 @@ struct ScheduleTaskView: View {
                 .padding(.horizontal)
 
                 // Task information
-                TaskInfoView()
+                TaskInfoView(task: task)
                     .frame(maxWidth: .infinity)
                     .frame(height: 60)
                     .padding()
@@ -294,7 +295,20 @@ struct TaskInfoView: View {
 
 struct ScheduleTaskView_Previews: PreviewProvider {
     static var previews: some View {
-        ScheduleTaskView()
+        ScheduleTaskView(task: Task(
+            id: "1",
+            title: "Example Task",
+            description: "This is an example task",
+            dueDates: [Date()],
+            specificDate: Date(),
+            isCompleted: false,
+            assignedTo: "User",
+            createdBy: "User",
+            createdAt: Date(),
+            familyId: "Family1",
+            taskColor: "Red",
+            numberOfFishes: 5
+        ))
     }
 }
 

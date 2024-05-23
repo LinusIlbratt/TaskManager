@@ -11,6 +11,7 @@ import SwiftUI
 struct TaskView: View {
     @StateObject private var viewModel = TaskViewModel()
     @State private var showingAddTaskView = false
+    @State private var selectedTask: Task? = nil
     
     var body: some View {
         NavigationView {
@@ -21,9 +22,22 @@ struct TaskView: View {
                 
                 ScrollView {
                     ForEach(viewModel.tasks) { task in
-                        TaskCardView(task: task)
-                            .padding(.horizontal)
-                            .padding(.top, 5)
+                        Button(action: {
+                            selectedTask = task
+                        }) {
+                            TaskCardView(task: task)
+                                .padding(.horizontal)
+                                .padding(.top, 5)
+                        }
+                        .background(
+                            NavigationLink(destination: ScheduleTaskView(task: selectedTask), isActive: Binding<Bool>(
+                                get: { selectedTask != nil },
+                                set: { if !$0 { selectedTask = nil } }
+                            )) {
+                                EmptyView()
+                            }
+                            .hidden()
+                        )
                     }
                 }
                 
@@ -52,6 +66,7 @@ struct TaskView: View {
         }
     }
 }
+
 
 struct AddTaskView: View {
     @ObservedObject var viewModel: TaskViewModel
