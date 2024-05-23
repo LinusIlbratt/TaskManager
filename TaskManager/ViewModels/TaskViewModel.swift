@@ -9,6 +9,7 @@ import Foundation
 import FirebaseFirestore
 import FirebaseFirestoreSwift
 import Combine
+import FirebaseAuth
 
 @MainActor
 class TaskViewModel: ObservableObject {
@@ -28,14 +29,21 @@ class TaskViewModel: ObservableObject {
     let calendar = Calendar.current
     let today = Date()
     
+    var auth = Auth.auth()
     private var db = Firestore.firestore()
     private var firestoreServices = FirebaseService()
     private var cancellables = Set<AnyCancellable>()
     
+    @Published var selectedDate: Date? {
+        didSet {
+            filterTasks()
+        }
+    }
+    
     init() {
         // First run and fetch tasks
-        fetchTasks()
-        firestoreServices.fetchTasks()
+        guard let user = auth.currentUser else { return }
+        firestoreServices.fetchTasks(assignedTo: user.uid)
         
         // Thanks to Combine, bind these tasks to our array list
         bindTasks()
@@ -84,15 +92,35 @@ class TaskViewModel: ObservableObject {
     }
     
     func updateTaskDueDates(task: Task, dueDates: [Date]) {
-            firestoreServices.updateTaskDueDates(task: task, dueDates: dueDates)
-        }
+        firestoreServices.updateTaskDueDates(task: task, dueDates: dueDates)
+    }
     
     private func bindTasks() {
-        firestoreServices.$tasks
+        firestoreServices.$userTasks
             .receive(on: DispatchQueue.main)
             .sink { [weak self] tasks in
                 self?.allTasksForThisUser = tasks
             }
             .store(in: &cancellables)
     }
+    
+    private func filterTasks() {
+        if let selectedDate = selectedDate {
+            allTasksForThisUser = firestoreServices.userTasks.filter { task in
+                calendar.isDate(task.dueDate, inSameDayAs: selectedDate)
+            }
+        } else {
+            allTasksForThisUser = firestoreServices.userTasks
+        }
+    }
+    
+    func updateTaskCompletion(taskId: String, isCompleted: Bool) {
+        if let index = allTasksForThisUser.firstIndex(where: { $0.id == taskId }) {
+            allTasksForThisUser[index].isCompleted = isCompleted
+            
+            // Update in firebase
+            firestoreServices.updateTaskInDatabase(taskId: taskId, isCompleted: isCompleted)
+        }
+    }
 }
+
