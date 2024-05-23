@@ -10,7 +10,8 @@ import FirebaseFirestore
 import FirebaseFirestoreSwift
 import Combine
 
-class FirestoreService: ObservableObject {
+class FirebaseService: ObservableObject {
+    @Published var selectedTask: Task?
     private var db = Firestore.firestore()
     
     @Published var tasks: [Task] = []
@@ -38,5 +39,27 @@ class FirestoreService: ObservableObject {
             
             print("Fetched \(self.tasks.count) tasks") // Debugging line
         }
+    }
+    
+    func updateTaskDueDates(task: Task, dueDates: [Date]) {
+        guard let taskId = task.id else {
+            print("Task ID not found")
+            return
+        }
+        
+        db.collection("tasks").document(taskId).updateData(["dueDates": dueDates]) { error in
+            if let error = error {
+                print("Error updating task: \(error)")
+            } else {
+                print("Task dueDates updated successfully")
+                if let index = self.tasks.firstIndex(where: { $0.id == taskId }) {
+                    self.tasks[index].dueDates = dueDates
+                }
+            }
+        }
+    }
+    
+    func updateTaskWithDates(dates: [Date]) {
+        selectedTask?.dueDates = dates
     }
 }
