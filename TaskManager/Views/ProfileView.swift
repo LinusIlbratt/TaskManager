@@ -12,10 +12,6 @@ struct ProfileView: View {
 @Binding var signedIn : Bool
 
 var body: some View {
-    ZStack {
-        Color(UIColor(red: 242/255, green: 242/255, blue: 242/255, alpha: 1))
-            .edgesIgnoringSafeArea(.all)
-        
         VStack {
             Spacer()
             
@@ -42,7 +38,6 @@ var body: some View {
             .padding(.bottom, 40)
         }
     }
-}
 }
 
 
