@@ -10,12 +10,13 @@ import FirebaseFirestore
 import FirebaseFirestoreSwift
 import Combine
 
-class FirestoreService: ObservableObject {
+class FirebaseService: ObservableObject {
+    @Published var selectedTask: Task?
     private var db = Firestore.firestore()
     
     @Published var tasks: [Task] = []
     
-    //New list for userTasks
+    // New list for userTasks
     @Published var userTasks: [Task] = []
     
     func fetchTasks() {
@@ -71,18 +72,42 @@ class FirestoreService: ObservableObject {
             }
     }
     
+    // Function to update task completion status
     func updateTaskInDatabase(taskId: String, isCompleted: Bool) {
-
-            let taskRef = db.collection("tasks").document(taskId)
-            
-            taskRef.updateData([
-                "isCompleted": isCompleted
-            ]) { error in
-                if let error = error {
-                    print("Error updating task: \(error)")
-                } else {
-                    print("Task successfully updated")
+        let taskRef = db.collection("tasks").document(taskId)
+        
+        taskRef.updateData([
+            "isCompleted": isCompleted
+        ]) { error in
+            if let error = error {
+                print("Error updating task: \(error)")
+            } else {
+                print("Task successfully updated")
+            }
+        }
+    }
+    
+    // Function to update task due dates
+    func updateTaskDueDates(task: Task, dueDates: [Date]) {
+        guard let taskId = task.id else {
+            print("Task ID not found")
+            return
+        }
+        
+        db.collection("tasks").document(taskId).updateData(["dueDates": dueDates]) { error in
+            if let error = error {
+                print("Error updating task: \(error)")
+            } else {
+                print("Task dueDates updated successfully")
+                if let index = self.tasks.firstIndex(where: { $0.id == taskId }) {
+                    self.tasks[index].dueDates = dueDates
                 }
             }
         }
+    }
+    
+    // Function to update selected task with dates
+    func updateTaskWithDates(dates: [Date]) {
+        selectedTask?.dueDates = dates
+    }
 }

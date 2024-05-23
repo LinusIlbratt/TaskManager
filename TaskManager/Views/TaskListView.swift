@@ -9,73 +9,18 @@ import SwiftUI
 import Firebase
 import FirebaseFirestoreSwift
 
-
-//This view acts as start page in the app, shows calendar view + things to do today
-struct TaskListView: View {
-    
-    //Get the data from our VM
-    @StateObject private var taskVM = TaskViewModel()
-    @State private var selectedDate: Date? = Date() // Initialize to today's date
-    
-    var body: some View {
-        VStack {
-            // Include calendarView
-            CalendarView(selectedDate: $selectedDate)
-            
-            Spacer()
-            Divider()
-            
-            VStack(alignment: .leading) {
-                Text("Today's tasks")
-                    .padding()
-                
-                // List of to-dos
-                List {
-                    ForEach(filteredTasks) { task in
-                        // Card for each task
-                        TaskCardView(task: task, taskVM: taskVM)
-                            .listRowSeparator(.hidden)
-                            .listRowBackground(Color.clear)
-                    }
-                }
-                .listStyle(PlainListStyle())
-            }
-        }
-        .onAppear {
-            // Update ViewModel selectedDate to trigger filtering (when app launches)
-            taskVM.selectedDate = selectedDate
-        }
-    }
-    
-    //Filter task list based on selected date in calendar view
-    var filteredTasks: [Task] {
-        if let selectedDate = selectedDate {
-            return taskVM.allTasksForThisUser.filter { task in
-                Calendar.current.isDate(task.dueDate, inSameDayAs: selectedDate)
-            }
-        } else {
-            return taskVM.allTasksForThisUser
-        }
-    }
-}
-
-
-
-
-//Each TaskCard extracted as seperate views
+//Each TaskCard extracted as separate views
 struct TaskCardView: View {
     
     var task : Task
-    
     @ObservedObject var taskVM: TaskViewModel
-    
     @State private var isCompleted: Bool
     
     init(task: Task, taskVM: TaskViewModel) {
-           self.task = task
-           self.taskVM = taskVM
-           self._isCompleted = State(initialValue: task.isCompleted)
-       }
+        self.task = task
+        self.taskVM = taskVM
+        self._isCompleted = State(initialValue: task.isCompleted)
+    }
     
     var body: some View {
         HStack {
@@ -104,32 +49,35 @@ struct TaskCardView: View {
             .padding(.trailing, 10)
 
             //Task details
-            VStack (alignment: .leading){
+            VStack (alignment: .leading) {
                 Text("Cleaning")
                     .font(.footnote)
 
                 Text(task.title)
-                        .font(.headline)
+                    .font(.headline)
                 
-                //Print formatted due date
-                Text(formatDueDate(date: task.dueDate))
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
-               
+                // Print formatted due dates
+                if let dueDates = task.dueDates {
+                    ForEach(dueDates, id: \.self) { date in
+                        Text(formatDueDate(date: date))
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+                    }
+                }
                 
                 HStack {
                     Spacer()
                     // "Not Done" button
                     Button(action: {
-                                   toggleTaskCompletion()
-                               }) {
-                                   Text(isCompleted ? "Done" : "Not Done")
-                                       .padding(.horizontal, 10)
-                                       .padding(.vertical, 5)
-                                       .background(isCompleted ? Color.gray.opacity(0.8) : Color.gray.opacity(0.2))
-                                       .cornerRadius(10)
-                                       .foregroundColor(isCompleted ? .white : .primary)
-                               }
+                        toggleTaskCompletion()
+                    }) {
+                        Text(isCompleted ? "Done" : "Not Done")
+                            .padding(.horizontal, 10)
+                            .padding(.vertical, 5)
+                            .background(isCompleted ? Color.gray.opacity(0.8) : Color.gray.opacity(0.2))
+                            .cornerRadius(10)
+                            .foregroundColor(isCompleted ? .white : .primary)
+                    }
                     .padding(.trailing, 10)
                 }
             }
@@ -141,7 +89,7 @@ struct TaskCardView: View {
         )
     }
     
-    //Format date in this struct direct
+    // Format date in this struct directly
     func formatDueDate(date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "dd/MM/yy"
@@ -149,13 +97,10 @@ struct TaskCardView: View {
     }
     
     // Toggle task completion status and update in ViewModel
-        private func toggleTaskCompletion() {
-            
-            if let taskId = task.id {
-                
-                isCompleted.toggle()
-                
-                taskVM.updateTaskCompletion(taskId: taskId, isCompleted: isCompleted)
-            }
+    private func toggleTaskCompletion() {
+        if let taskId = task.id {
+            isCompleted.toggle()
+            taskVM.updateTaskCompletion(taskId: taskId, isCompleted: isCompleted)
         }
+    }
 }
