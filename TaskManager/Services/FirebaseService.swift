@@ -70,4 +70,19 @@ class FirestoreService: ObservableObject {
                 print("Fetched \(self.userTasks.count) tasks assigned to \(userId)") // Debugging line
             }
     }
+    
+    func updateTaskInDatabase(taskId: String, isCompleted: Bool) {
+
+            let taskRef = db.collection("tasks").document(taskId)
+            
+            taskRef.updateData([
+                "isCompleted": isCompleted
+            ]) { error in
+                if let error = error {
+                    print("Error updating task: \(error)")
+                } else {
+                    print("Task successfully updated")
+                }
+            }
+        }
 }

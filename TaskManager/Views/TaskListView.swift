@@ -33,7 +33,7 @@ struct TaskListView: View {
                 List {
                     ForEach(filteredTasks) { task in
                         // Card for each task
-                        TaskCardView(task: task)
+                        TaskCardView(task: task, taskVM: taskVM)
                             .listRowSeparator(.hidden)
                             .listRowBackground(Color.clear)
                     }
@@ -66,6 +66,16 @@ struct TaskListView: View {
 struct TaskCardView: View {
     
     var task : Task
+    
+    @ObservedObject var taskVM: TaskViewModel
+    
+    @State private var isCompleted: Bool
+    
+    init(task: Task, taskVM: TaskViewModel) {
+           self.task = task
+           self.taskVM = taskVM
+           self._isCompleted = State(initialValue: task.isCompleted)
+       }
     
     var body: some View {
         HStack {
@@ -111,14 +121,15 @@ struct TaskCardView: View {
                     Spacer()
                     // "Not Done" button
                     Button(action: {
-                        // Action for the button
-                    }) {
-                        Text("Not Done")
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 5)
-                            .background(Color.gray.opacity(0.2))
-                            .cornerRadius(10)
-                    }
+                                   toggleTaskCompletion()
+                               }) {
+                                   Text(isCompleted ? "Done" : "Not Done")
+                                       .padding(.horizontal, 10)
+                                       .padding(.vertical, 5)
+                                       .background(isCompleted ? Color.gray.opacity(0.8) : Color.gray.opacity(0.2))
+                                       .cornerRadius(10)
+                                       .foregroundColor(isCompleted ? .white : .primary)
+                               }
                     .padding(.trailing, 10)
                 }
             }
@@ -136,4 +147,15 @@ struct TaskCardView: View {
         formatter.dateFormat = "dd/MM/yy"
         return "Due \(formatter.string(from: date))"
     }
+    
+    // Toggle task completion status and update in ViewModel
+        private func toggleTaskCompletion() {
+            
+            if let taskId = task.id {
+                
+                isCompleted.toggle()
+                
+                taskVM.updateTaskCompletion(taskId: taskId, isCompleted: isCompleted)
+            }
+        }
 }

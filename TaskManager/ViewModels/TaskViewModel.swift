@@ -58,5 +58,13 @@ class TaskViewModel: ObservableObject {
             allTasksForThisUser = firestoreServices.userTasks
         }
     }
-
+    
+    func updateTaskCompletion(taskId: String, isCompleted: Bool) {
+        if let index = allTasksForThisUser.firstIndex(where: { $0.id == taskId }) {
+            allTasksForThisUser[index].isCompleted = isCompleted
+            
+            //update in firebase
+            firestoreServices.updateTaskInDatabase(taskId: taskId, isCompleted: isCompleted)
+        }
+    }
 }
