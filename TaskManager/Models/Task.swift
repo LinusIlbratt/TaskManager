@@ -12,7 +12,7 @@ struct Task: Identifiable, Codable {
     @DocumentID var id: String?
     var title: String
     var description: String
-    var dueDate: Date
+    var dueDates: [Date]
     var specificDate: Date //added for specific stuff
     var isCompleted: Bool
     var assignedTo: String
