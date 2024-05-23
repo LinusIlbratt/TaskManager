@@ -14,7 +14,7 @@ struct TaskView: View {
     @State private var selectedTask: Task? = nil
     
     var body: some View {
-        NavigationView {
+        NavigationStack {
             VStack {
                 Text("Select task to schedule")
                     .font(.headline)
@@ -22,22 +22,11 @@ struct TaskView: View {
                 
                 ScrollView {
                     ForEach(viewModel.tasks) { task in
-                        Button(action: {
-                            selectedTask = task
-                        }) {
+                        NavigationLink(destination: ScheduleTaskView(task: task)) {
                             TaskCardView(task: task)
                                 .padding(.horizontal)
                                 .padding(.top, 5)
                         }
-                        .background(
-                            NavigationLink(destination: ScheduleTaskView(task: selectedTask), isActive: Binding<Bool>(
-                                get: { selectedTask != nil },
-                                set: { if !$0 { selectedTask = nil } }
-                            )) {
-                                EmptyView()
-                            }
-                            .hidden()
-                        )
                     }
                 }
                 
@@ -55,7 +44,7 @@ struct TaskView: View {
                         .padding()
                 }
             }
-            .navigationTitle("Your Tasks")
+            .navigationTitle("")
             .navigationBarHidden(true)
             .onAppear {
                 viewModel.fetchTasks()
