@@ -8,9 +8,12 @@
 import Foundation
 import FirebaseFirestore
 import FirebaseFirestoreSwift
+import Combine
 
+@MainActor
 class TaskViewModel: ObservableObject {
     @Published var tasks: [Task] = []
+    @Published var allTasksForThisUser: [Task] = []
     @Published var title: String = ""
     @Published var description: String = ""
     @Published var dueDate: Date = Date()
@@ -22,7 +25,21 @@ class TaskViewModel: ObservableObject {
     @Published var taskColor: String = ""
     @Published var numberOfFishes: Int = 0
     
+    let calendar = Calendar.current
+    let today = Date()
+    
     private var db = Firestore.firestore()
+    private var firestoreServices = FirestoreService()
+    private var cancellables = Set<AnyCancellable>()
+    
+    init() {
+        // First run and fetch tasks
+        fetchTasks()
+        firestoreServices.fetchTasks()
+        
+        // Thanks to Combine, bind these tasks to our array list
+        bindTasks()
+    }
     
     func fetchTasks() {
         db.collection("tasks").addSnapshotListener { (querySnapshot, error) in
@@ -69,5 +86,13 @@ class TaskViewModel: ObservableObject {
         taskColor = ""
         numberOfFishes = 0
     }
+    
+    private func bindTasks() {
+        firestoreServices.$tasks
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] tasks in
+                self?.allTasksForThisUser = tasks
+            }
+            .store(in: &cancellables)
+    }
 }
-
