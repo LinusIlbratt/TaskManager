@@ -29,7 +29,7 @@ class TaskViewModel: ObservableObject {
     let today = Date()
     
     private var db = Firestore.firestore()
-    private var firestoreServices = FirestoreService()
+    private var firestoreServices = FirebaseService()
     private var cancellables = Set<AnyCancellable>()
     
     init() {
@@ -58,10 +58,8 @@ class TaskViewModel: ObservableObject {
         let newTask = Task(
             title: title,
             description: description,
-            dueDate: dueDate,
             specificDate: specificDate,
             isCompleted: isCompleted,
-            assignedTo: assignedTo,
             createdBy: createdBy,
             createdAt: Date(),
             familyId: familyId.isEmpty ? nil : familyId,
@@ -77,10 +75,8 @@ class TaskViewModel: ObservableObject {
         
         title = ""
         description = ""
-        dueDate = Date()
         specificDate = Date()
         isCompleted = false
-        assignedTo = ""
         createdBy = ""
         familyId = ""
         taskColor = ""

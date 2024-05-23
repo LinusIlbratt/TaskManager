@@ -12,10 +12,10 @@ struct Task: Identifiable, Codable {
     @DocumentID var id: String?
     var title: String
     var description: String
-    var dueDates: [Date]
+    var dueDates: [Date]?
     var specificDate: Date //added for specific stuff
     var isCompleted: Bool
-    var assignedTo: String
+    var assignedTo: String?
     var createdBy: String
     var createdAt: Date
     var familyId: String?

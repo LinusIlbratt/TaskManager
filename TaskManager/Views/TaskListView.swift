@@ -83,10 +83,14 @@ struct TaskCardView: View {
                 Text(task.title)
                         .font(.headline)
                 
-                //Print formatted due date
-                Text(formatDueDate(date: task.dueDate))
-                    .font(.subheadline)
-                    .foregroundColor(.gray)
+                // Print formatted due dates
+                if let dueDates = task.dueDates {
+                    ForEach(dueDates, id: \.self) { date in
+                        Text(formatDueDate(date: date))
+                            .font(.subheadline)
+                            .foregroundColor(.gray)
+                    }
+                }
                
                 
                 HStack {
@@ -114,8 +118,8 @@ struct TaskCardView: View {
     
     //Format date in this struct direct
     func formatDueDate(date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "dd/MM/yy"
-        return "Due \(formatter.string(from: date))"
-    }
+            let formatter = DateFormatter()
+            formatter.dateFormat = "dd/MM/yy"
+            return "Due \(formatter.string(from: date))"
+        }
 }
