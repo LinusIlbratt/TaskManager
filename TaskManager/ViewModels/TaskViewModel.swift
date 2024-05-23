@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import FirebaseAuth
 
 
 @MainActor //? Mainactor makes sure it runs on main thread?
@@ -15,27 +16,47 @@ class TaskViewModel: ObservableObject {
     let calendar = Calendar.current
     let today = Date()
     
+    var auth = Auth.auth()
+    
     var firestoreServices = FirestoreService()
     
     @Published var allTasksForThisUser: [Task] = []
+    
+    @Published var selectedDate: Date? {
+            didSet {
+                filterTasks()
+            }
+        }
     
     private var cancellables = Set<AnyCancellable>()
     
     init() {
         
         //First run and fetch tasks
-        firestoreServices.fetchTasks()
+        guard let user = auth.currentUser else {  return }
+        firestoreServices.fetchTasks(assignedTo: user.uid)
         
         //thanks to combine, find these task to our array list
         bindTasks()
     }
     
     private func bindTasks() {
-        firestoreServices.$tasks
+        firestoreServices.$userTasks
             .receive(on: DispatchQueue.main)
             .sink { [weak self] tasks in
                 self?.allTasksForThisUser = tasks
             }
             .store(in: &cancellables)
     }
+    
+    private func filterTasks() {
+        if let selectedDate = selectedDate {
+            allTasksForThisUser = firestoreServices.userTasks.filter { task in
+                calendar.isDate(task.dueDate, inSameDayAs: selectedDate)
+            }
+        } else {
+            allTasksForThisUser = firestoreServices.userTasks
+        }
+    }
+
 }

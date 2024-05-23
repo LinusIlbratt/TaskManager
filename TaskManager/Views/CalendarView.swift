@@ -9,8 +9,12 @@ import SwiftUI
 
 struct CalendarView: View {
     
+    @Binding var selectedDate: Date?
+    
     @State private var days: [CalendarDay] = []
     @State private var selectedDayIndex: Int?
+    
+    let calendar = Calendar.current
     
     var body: some View {
         VStack {
@@ -75,6 +79,9 @@ struct CalendarView: View {
                         .cornerRadius(10)
                         .onTapGesture {
                             selectedDayIndex = index
+                            if let startOfWeek = calendar.date(byAdding: .day, value: -(calendar.component(.weekday, from: Date()) - 2), to: Date()) {
+                                selectedDate = calendar.date(byAdding: .day, value: index, to: startOfWeek)
+                            }
                         }
                     }
                 }
