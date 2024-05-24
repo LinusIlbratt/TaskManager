@@ -43,25 +43,26 @@ struct TaskListView: View {
         .onAppear {
             // Update ViewModel selectedDate to trigger filtering (when app launches)
             taskVM.selectedDate = selectedDate
+            taskVM.fetchUserTasks()
         }
     }
     
-    //Filter task list based on selected date in calendar view
-    var filteredTasks: [Task] {
-        if let selectedDate = selectedDate {
-            return taskVM.allTasksForThisUser.filter { task in
-                if let dueDates = task.dueDates {
-                    return dueDates.contains { dueDate in
-                        Calendar.current.isDate(dueDate, inSameDayAs: selectedDate)
+    // Filter task list based on selected date in calendar view
+        var filteredTasks: [Task] {
+            if let selectedDate = selectedDate {
+                return taskVM.allTasksForThisUser.filter { task in
+                    if let dueDates = task.dueDates {
+                        return dueDates.contains { dueDate in
+                            Calendar.current.isDate(dueDate, inSameDayAs: selectedDate)
+                        }
                     }
+                    return false
                 }
-                return false
+            } else {
+                return taskVM.allTasksForThisUser
             }
-        } else {
-            return taskVM.allTasksForThisUser
         }
     }
-}
 
 //Each TaskCard extracted as separate views
 struct TaskCardView: View {

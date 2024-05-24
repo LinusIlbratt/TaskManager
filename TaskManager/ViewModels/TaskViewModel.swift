@@ -104,6 +104,11 @@ class TaskViewModel: ObservableObject {
             .store(in: &cancellables)
     }
     
+    func fetchUserTasks() {
+            guard let user = auth.currentUser else { return }
+            firestoreServices.fetchTasks(assignedTo: user.uid)
+        }
+    
     private func filterTasks() {
         if let selectedDate = selectedDate {
             allTasksForThisUser = firestoreServices.userTasks.filter { task in
