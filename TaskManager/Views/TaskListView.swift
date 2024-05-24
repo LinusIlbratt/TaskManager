@@ -78,71 +78,77 @@ struct TaskCardView: View {
     }
     
     var body: some View {
-        HStack {
-            //Circle with the number of fishes available
-            VStack {
-                ZStack {
-                    Circle()
-                        .fill(Color.black)
-                        .frame(width: 70, height: 70)
-                        
-                    VStack {
-                        Text("\(task.numberOfFishes)")
-                            .font(.title)
-                            .foregroundColor(.white)
-                            .padding(.top, 10)
-                        Text("Fishes")
-                            .font(.caption)
-                            .foregroundColor(.white)
-                            .padding(.bottom, 15)
-                    }
-                    .padding(20)
-                    
-                }
-            }
-            .padding(.leading, 10)
-            .padding(.trailing, 10)
-
-            //Task details
-            VStack (alignment: .leading) {
-                Text("Cleaning")
-                    .font(.footnote)
-
-                Text(task.title)
-                    .font(.headline)
-                
-                // Print formatted due dates
-                if let dueDates = task.dueDates {
-                    ForEach(dueDates, id: \.self) { date in
-                        Text(formatDueDate(date: date))
-                            .font(.subheadline)
-                            .foregroundColor(.gray)
-                    }
-                }
-                
+            ZStack(alignment: .bottomTrailing) {
                 HStack {
-                    Spacer()
-                    // "Not Done" button
-                    Button(action: {
-                        toggleTaskCompletion()
-                    }) {
-                        Text(isCompleted ? "Done" : "Not Done")
-                            .padding(.horizontal, 10)
-                            .padding(.vertical, 5)
-                            .background(isCompleted ? Color.gray.opacity(0.8) : Color.gray.opacity(0.2))
-                            .cornerRadius(10)
-                            .foregroundColor(isCompleted ? .white : .primary)
+                    // Circle with the number of fishes available
+                    VStack {
+                        ZStack {
+                            Circle()
+                                .fill(Color.black)
+                                .frame(width: 70, height: 70)
+                                
+                            VStack {
+                                Text("\(task.numberOfFishes)")
+                                    .font(.title)
+                                    .foregroundColor(.white)
+                                    .padding(.top, 10)
+                                Text("Fishes")
+                                    .font(.caption)
+                                    .foregroundColor(.white)
+                                    .padding(.bottom, 15)
+                            }
+                            .padding(20)
+                            
+                        }
                     }
+                    .padding(.leading, 10)
                     .padding(.trailing, 10)
+
+                    // Task details
+                    VStack(alignment: .leading) {
+                        Text("Cleaning")
+                            .font(.footnote)
+
+                        Text(task.title)
+                            .font(.headline)
+                        
+                        // Print formatted due dates
+                        if let dueDates = task.dueDates {
+                            ForEach(dueDates, id: \.self) { date in
+                                Text(formatDueDate(date: date))
+                                    .font(.subheadline)
+                                    .foregroundColor(.gray)
+                            }
+                        }
+                    }
+                    Spacer()
                 }
+                .contentShape(Rectangle()) // Make the entire HStack tappable
+                .onTapGesture {
+                    // Handle tap on the whole card here if needed
+                    print("Card tapped") // Placeholder for card tap action
+                }
+                .frame(maxWidth: .infinity)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color.gray, lineWidth: 1)
+                )
+                .padding()
+
+                // "Not Done" button
+                Button(action: {
+                    toggleTaskCompletion()
+                }) {
+                    Text(isCompleted ? "Done" : "Not Done")
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 5)
+                        .background(isCompleted ? Color.gray.opacity(0.8) : Color.gray.opacity(0.2))
+                        .cornerRadius(10)
+                        .foregroundColor(isCompleted ? .white : .primary)
+                }
+                .padding([.trailing, .bottom], 10)
             }
         }
-        .frame(maxWidth: .infinity)
-        .background(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(Color.gray, lineWidth: 1)
-        )
-    }
     
     // Format date in this struct directly
     func formatDueDate(date: Date) -> String {
