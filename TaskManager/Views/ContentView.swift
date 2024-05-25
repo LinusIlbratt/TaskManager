@@ -270,8 +270,7 @@ struct SignInView : View {
                     .padding(.horizontal)
                     
                     Button(action: {
-                        if displayName != "" {
-                            displayName = ""
+                        if !displayName.isEmpty {
                             onSave()
                         }else {
                             alertTitle = "An error occured"
