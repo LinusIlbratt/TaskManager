@@ -58,42 +58,55 @@ struct SignInView : View {
     @State var password = "" //123456"
     @State private var displayName = ""
     @State private var showAlert: Bool = false
-    @State private var alertMessage: String = ""
+    @State private var alertMessage : String = ""
+    @State private var alertTitle : String = ""
     @State private var showDisplayNameAlert : Bool = false
+    @State private var showForgotPasswordButton: Bool = false
     
     var auth = Auth.auth()
     var body : some View {
-        VStack(spacing: 20) {
-            Text("Login")
+        VStack(alignment: .leading, spacing: 20) {
+            Text("Log in")
                 .font(.largeTitle)
                 .bold()
+                .padding(.bottom, 20)
             
-            
+            Text("Email address")
+                .padding(.horizontal, 20)
+                .padding(.bottom, -10)
+                
             TextField("Email", text: $userName)
                 .keyboardType(.emailAddress)
                 .autocapitalization(/*@START_MENU_TOKEN@*/.none/*@END_MENU_TOKEN@*/)
                 .padding()
                 .background(Color(.systemGray6))
                 .cornerRadius(10)
-                .padding(.horizontal)
+                .padding(.horizontal, 20)
+            
+            Text("Password")
+                .padding(.horizontal, 20)
+                .padding(.bottom, -10)
             
             SecureField("Password", text: $password)
                 .padding()
                 .background(Color(.systemGray6))
                 .cornerRadius(10)
-                .padding(.horizontal)
+                .padding(.horizontal, 20)
             HStack{
                 Button(action: {
                     if userName.isEmpty {
+                        alertTitle = "An error occured"
                         alertMessage = "You missed fill in your email, try again"
                         showAlert = true
                     } else if password.isEmpty {
+                        alertTitle = "An error occured"
                         alertMessage = "You missed fill in your password, try again"
                         showAlert = true
                     } else {
                         if userViewModel.isValidEmail(email: userName) {
                             showDisplayNameAlert = true
                         } else {
+                            alertTitle = "An error occured"
                             alertMessage = "Your email seems not to be correct, please check and try again"
                             showAlert = true
                         }
@@ -107,26 +120,43 @@ struct SignInView : View {
                 .foregroundColor(.white)
                 .padding()
                 .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/)
-                .background(Color.blue)
+                .background(Color.black)
                 .cornerRadius(10)
                 })
                 .padding(.horizontal)
                 
                 
                 Button(action: {
-                    
-                    
-                    userViewModel.loginUser(email: userName, password: password) {
-                        success in
-                        if success {
-                            print("USer loggedin ")
-                            signedIn = true
+                    if userName.isEmpty {
+                        alertTitle = "An error occured"
+                        alertMessage = "You missed fill in your email, try again"
+                        showAlert = true
+                    } else if password.isEmpty {
+                        alertTitle = "An error occured"
+                        alertMessage = "You missed fill in your password, try again"
+                        showAlert = true
+                    } else {
+                        if userViewModel.isValidEmail(email: userName) {
+                            userViewModel.loginUser(email: userName, password: password) {
+                                success in
+                                if success {
+                                    print("USer loggedin ")
+                                    signedIn = true
+                                } else {
+                                    alertTitle = "An error occured"
+                                    alertMessage = "failed to login"
+                                    showForgotPasswordButton = true
+                                    showAlert = true
+                                }
+                            }
                         } else {
-                            
-                            alertMessage = "failed to login"
+                            alertTitle = "An error occured"
+                            alertMessage = "Your email seems not to be correct, please check and try again"
                             showAlert = true
                         }
                     }
+                    
+                    
                 }, label: {
                     Text("Log in")
                 
@@ -134,7 +164,7 @@ struct SignInView : View {
                 .foregroundColor(.white)
                 .padding()
                 .frame(maxWidth: /*@START_MENU_TOKEN@*/.infinity/*@END_MENU_TOKEN@*/)
-                .background(Color.blue)
+                .background(Color.black)
                 .cornerRadius(10)
                 })
                 .padding(.horizontal)
@@ -143,12 +173,41 @@ struct SignInView : View {
         }
         .padding()
         .alert(isPresented: $showAlert) {
-            Alert(title: Text("An error occured"), message: Text(alertMessage), dismissButton: .default(Text("Ok")))
+            if showForgotPasswordButton {
+                return Alert(
+                    title: Text(alertTitle),
+                    message: Text(alertMessage),
+                    primaryButton: .default(Text("Ok")),
+                    secondaryButton: .default(Text("Forgot your password?")) {
+                        userViewModel.sendPasswordReset(email: userName) {
+                            success in
+                            if success {
+                                alertTitle = "Success"
+                                alertMessage = "Check your inbox!"
+                                showAlert = true
+                            } else {
+                                alertTitle = "An error occured"
+                                alertMessage = "Something went wrong, check your emailaddress"
+                                showAlert = true
+                            }
+                            
+                            //showAlert = false
+                            showForgotPasswordButton = false
+                        }
+                    }
+                )
+            } else {
+                return Alert(
+                    title: Text(alertTitle),
+                    message: Text(alertMessage),
+                    dismissButton: .default(Text("Ok"))
+                )
+            }
         }
         .overlay() {
             ZStack {
                 if showDisplayNameAlert {
-                    DisplayNameView(isPresented: $showDisplayNameAlert, displayName: $displayName, showAlert: $showAlert, alertMessage: $alertMessage) {
+                    DisplayNameView(isPresented: $showDisplayNameAlert, displayName: $displayName, showAlert: $showAlert, alertMessage: $alertMessage, alertTitle: $alertTitle) {
                         registerUser()
                     }
                 }
@@ -162,6 +221,7 @@ struct SignInView : View {
                 print("User registered correct")
                 signedIn = true
             } else {
+                alertTitle = "An error occured"
                 alertMessage = "Failed to register"
                 showAlert = true
             }
@@ -173,51 +233,62 @@ struct SignInView : View {
         @Binding var displayName: String
         @Binding var showAlert: Bool
         @Binding var alertMessage : String
+        @Binding var alertTitle : String
         var onSave: () -> Void
         
         var body: some View {
-            VStack(spacing: 20) {
-                Text("Enter Your Name")
-                    .font(.headline)
-                    .padding()
+            VStack(alignment: .leading, spacing: 20) {
+                Text("Create account")
+                    .font(.largeTitle)
+                    .bold()
+                    .padding(.bottom, 20)
+                    
+                Text("Your name")
+                    .padding(.horizontal, 20)
+                    .padding(.bottom, -10)
                 
                 TextField("Name", text: $displayName)
                     .padding()
                     .background(Color(.systemGray6))
                     .cornerRadius(10)
-                    .padding(.horizontal)
+                    .padding(.horizontal, 20)
+                
                 
                 HStack {
                     Button(action: {
                         displayName = ""
                         isPresented = false
-                    }) {
-                        Text("Cancel")
+                    }, label: {
+                        Text("Back")
                             .foregroundColor(.white)
                             .padding()
                             .frame(maxWidth: .infinity)
-                            .background(Color.red)
+                            .background(Color.black)
                             .cornerRadius(10)
-                            .padding(.horizontal)
-                    }
+                            .font(.headline)
+                    })
+                    .padding(.horizontal)
                     
                     Button(action: {
                         if displayName != "" {
                             displayName = ""
                             onSave()
                         }else {
+                            alertTitle = "An error occured"
                             alertMessage = "You missed fill in your name, try again"
                             showAlert = true
                         }
-                    }) {
-                        Text("Save")
+                    }, label: {
+                        Text("Log in")
                             .foregroundColor(.white)
                             .padding()
                             .frame(maxWidth: .infinity)
-                            .background(Color.blue)
+                            .background(Color.black)
                             .cornerRadius(10)
-                            .padding(.horizontal)
-                    }
+                            .font(.headline)
+                      
+                    })
+                    .padding(.horizontal)
                 }
             }
             .padding()

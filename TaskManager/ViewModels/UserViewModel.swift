@@ -57,4 +57,14 @@ class UserViewModel: ObservableObject {
             return NSPredicate(format: "SELF MATCHES %@", regex).evaluate(with: email)
         }
     
+    func sendPasswordReset(email: String, completion: @escaping (Bool) -> Void) {
+        Auth.auth().sendPasswordReset(withEmail: email) { error in
+            if let error = error {
+                print("Error: \(error.localizedDescription)")
+                completion(false)
+            } else {
+                completion(true)
+            }
+        }
+    }
 }
