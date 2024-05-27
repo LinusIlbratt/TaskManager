@@ -92,7 +92,7 @@ struct ScheduleTaskView: View {
                             ZStack {
                                 if selectedDates.contains(date) {
                                     RoundedRectangle(cornerRadius: 8)
-                                        .fill(Color.blue)
+                                        .fill(Color.black)
                                 } else {
                                     RoundedRectangle(cornerRadius: 8)
                                         .fill(Color.clear)
@@ -100,7 +100,7 @@ struct ScheduleTaskView: View {
 
                                 if self.isCurrentDate(date) {
                                     RoundedRectangle(cornerRadius: 8)
-                                        .stroke(Color.blue, lineWidth: 2)
+                                        .stroke(Color.black, lineWidth: 2)
                                 }
 
                                 Text("\(self.dayString(from: date))")
@@ -320,7 +320,7 @@ struct UsersListView: View {
                     .padding()
                 
                 List(firebaseService.users) { user in
-                    Text(user.displayName) 
+                    Text(user.displayName)
                 }
                 
                 HStack {
