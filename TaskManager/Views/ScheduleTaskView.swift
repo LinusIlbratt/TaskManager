@@ -10,189 +10,205 @@ import SwiftUI
 struct ScheduleTaskView: View {
     @State private var currentDate = Date()
     @State private var selectedDates: Set<Date> = []
+    @State private var showUsers = false
+    @State private var selectedUser: User? = nil
     @ObservedObject var viewModel: TaskViewModel
+    @StateObject var firebaseService = FirebaseService()
+    @State private var showUserList = false
     @Environment(\.dismiss) var dismiss
     var task: Task?
     
     var body: some View {
-        VStack(spacing: 15) {
-            HStack {
-                Text("Schedule Task")
-                    .font(.headline)
-                Spacer()
-            }
-            .padding(.horizontal)
-
-            // Task information
-            TaskInfoView(task: task)
-                .frame(maxWidth: .infinity)
-                .frame(height: 60)
-                .padding()
-                .background(
-                    ZStack {
-                        RoundedRectangle(cornerRadius: 10)
-                            .fill(Color.white)
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color.gray, lineWidth: 1)
-                    }
-                )
-                .padding(.horizontal, 40)
-
-            // Calendar
-            VStack {
+        ZStack {
+            VStack(spacing: 15) {
                 HStack {
-                    Button(action: {
-                        withAnimation {
-                            self.decrementMonth()
-                        }
-                    }) {
-                        Image(systemName: "chevron.left")
-                            .padding()
-                    }
-                    
-                    Spacer()
-                    
-                    Text("\(self.monthYearString(from: currentDate))")
-                        .font(.headline)
-                    
-                    Spacer()
-                    
-                    Button(action: {
-                        withAnimation {
-                            self.incrementMonth()
-                        }
-                    }) {
-                        Image(systemName: "chevron.right")
-                            .padding()
-                    }
-                }
-                
-                HStack {
-                    ForEach(["M", "T", "O", "T", "F", "L", "S"], id: \.self) { day in
-                        Text(day)
-                            .frame(maxWidth: .infinity)
-                            .font(.caption)
-                    }
-                }
-                
-                let columns = Array(repeating: GridItem(.flexible()), count: 7)
-                
-                LazyVGrid(columns: columns, spacing: 10) {
-                    ForEach(0..<self.firstWeekday(), id: \.self) { _ in
-                        Text("")
-                            .frame(maxWidth: .infinity)
-                    }
-                    
-                    ForEach(self.daysInMonth(), id: \.self) { date in
-                        ZStack {
-                            if selectedDates.contains(date) {
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(Color.blue)
-                            } else {
-                                RoundedRectangle(cornerRadius: 8)
-                                    .fill(Color.clear)
-                            }
-
-                            if self.isCurrentDate(date) {
-                                RoundedRectangle(cornerRadius: 8)
-                                    .stroke(Color.blue, lineWidth: 2)
-                            }
-
-                            Text("\(self.dayString(from: date))")
-                                .foregroundColor(
-                                    selectedDates.contains(date) ? .white :
-                                    self.isCurrentDate(date) ? .black :
-                                    (date < Date() ? .gray : .black)
-                                )
-                                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                .padding(4)
-                                .background(Color.clear)
-                                .onTapGesture {
-                                    if date >= Calendar.current.startOfDay(for: Date()) {
-                                        if selectedDates.contains(date) {
-                                            selectedDates.remove(date)
-                                        } else {
-                                            selectedDates.insert(date)
-                                        }
-                                    }
-                                }
-                                .layoutPriority(1)
-                        }
-
-                        .frame(minWidth: 40, maxWidth: .infinity, minHeight: 40, maxHeight: 40)
-                    }
-                }
-            }
-            .padding()
-            .background(
-                RoundedRectangle(cornerRadius: 10)
-                    .fill(Color.white)
-                    .shadow(radius: 5)
-            )
-            .padding(.horizontal)
-            
-            // Buttons
-            VStack(spacing: 10) {
-                Button(action: {}) {
-                    Text("Set Alarm")
-                        .font(.caption)
-                        .foregroundColor(.black)
-                        .frame(maxWidth: .infinity)
-                        .frame(maxHeight: 5)
-                        .padding()
-                        .background(
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 20)
-                                    .fill(Color.white.opacity(0.5))
-                                RoundedRectangle(cornerRadius: 20)
-                                    .stroke(Color.black, lineWidth: 1)
-                            }
-                        )
-                }
-                
-                Button(action: {}) {
-                    Text("Assign family member")
-                        .font(.caption)
-                        .foregroundColor(.black)
-                        .frame(maxWidth: .infinity)
-                        .frame(maxHeight: 5)
-                        .padding()
-                        .background(
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 20)
-                                    .fill(Color.white.opacity(0.5))
-                                RoundedRectangle(cornerRadius: 20)
-                                    .stroke(Color.black, lineWidth: 1)
-                            }
-                        )
-                }
-                
-                Spacer()
-
-                Button(action: {
-                    if let task = task {
-                        viewModel.updateTaskDueDates(task: task, dueDates: Array(selectedDates))
-                        dismiss()
-                    }
-                }) {
                     Text("Schedule Task")
                         .font(.headline)
-                        .foregroundColor(.black)
-                        .padding()
-                        .frame(maxWidth: .infinity)
-                        .background(
-                            ZStack {
-                                RoundedRectangle(cornerRadius: 4)
-                                    .fill(Color.white.opacity(0.5))
-                                RoundedRectangle(cornerRadius: 4)
-                                    .stroke(Color.black, lineWidth: 1)
-                            }
-                        )
+                    Spacer()
                 }
+                .padding(.horizontal)
+
+                // Task information
+                TaskInfoView(task: task)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 60)
+                    .padding()
+                    .background(
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 10)
+                                .fill(Color.white)
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color.gray, lineWidth: 1)
+                        }
+                    )
+                    .padding(.horizontal, 40)
+
+                // Calendar
+                VStack {
+                    HStack {
+                        Button(action: {
+                            withAnimation {
+                                self.decrementMonth()
+                            }
+                        }) {
+                            Image(systemName: "chevron.left")
+                                .padding()
+                        }
+                        
+                        Spacer()
+                        
+                        Text("\(self.monthYearString(from: currentDate))")
+                            .font(.headline)
+                        
+                        Spacer()
+                        
+                        Button(action: {
+                            withAnimation {
+                                self.incrementMonth()
+                            }
+                        }) {
+                            Image(systemName: "chevron.right")
+                                .padding()
+                        }
+                    }
+                    
+                    HStack {
+                        ForEach(["M", "T", "O", "T", "F", "L", "S"], id: \.self) { day in
+                            Text(day)
+                                .frame(maxWidth: .infinity)
+                                .font(.caption)
+                        }
+                    }
+                    
+                    let columns = Array(repeating: GridItem(.flexible()), count: 7)
+                    
+                    LazyVGrid(columns: columns, spacing: 10) {
+                        ForEach(0..<self.firstWeekday(), id: \.self) { _ in
+                            Text("")
+                                .frame(maxWidth: .infinity)
+                        }
+                        
+                        ForEach(self.daysInMonth(), id: \.self) { date in
+                            ZStack {
+                                if selectedDates.contains(date) {
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(Color.blue)
+                                } else {
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .fill(Color.clear)
+                                }
+
+                                if self.isCurrentDate(date) {
+                                    RoundedRectangle(cornerRadius: 8)
+                                        .stroke(Color.blue, lineWidth: 2)
+                                }
+
+                                Text("\(self.dayString(from: date))")
+                                    .foregroundColor(
+                                        selectedDates.contains(date) ? .white :
+                                        self.isCurrentDate(date) ? .black :
+                                        (date < Date() ? .gray : .black)
+                                    )
+                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                    .padding(4)
+                                    .background(Color.clear)
+                                    .onTapGesture {
+                                        if date >= Calendar.current.startOfDay(for: Date()) {
+                                            if selectedDates.contains(date) {
+                                                selectedDates.remove(date)
+                                            } else {
+                                                selectedDates.insert(date)
+                                            }
+                                        }
+                                    }
+                                    .layoutPriority(1)
+                            }
+
+                            .frame(minWidth: 40, maxWidth: .infinity, minHeight: 40, maxHeight: 40)
+                        }
+                    }
+                }
+                .padding()
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.white)
+                        .shadow(radius: 5)
+                )
+                .padding(.horizontal)
+                
+                // Buttons
+                VStack(spacing: 10) {
+                    Button(action: {}) {
+                        Text("Set Alarm")
+                            .font(.caption)
+                            .foregroundColor(.black)
+                            .frame(maxWidth: .infinity)
+                            .frame(maxHeight: 5)
+                            .padding()
+                            .background(
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .fill(Color.white.opacity(0.5))
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .stroke(Color.black, lineWidth: 1)
+                                }
+                            )
+                    }
+                    
+                    Button(action: {
+                        firebaseService.fetchUsers()
+                        showUserList.toggle()
+                    }) {
+                        Text("Assign family member")
+                            .font(.caption)
+                            .foregroundColor(.black)
+                            .frame(maxWidth: .infinity)
+                            .frame(maxHeight: 5)
+                            .padding()
+                            .background(
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .fill(Color.white.opacity(0.5))
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .stroke(Color.black, lineWidth: 1)
+                                }
+                            )
+                    }
+                    
+                    Spacer()
+
+                    Button(action: {
+                        if let task = task {
+                            viewModel.updateTaskDueDates(task: task, dueDates: Array(selectedDates))
+                            dismiss()
+                        }
+                    }) {
+                        Text("Schedule Task")
+                            .font(.headline)
+                            .foregroundColor(.black)
+                            .padding()
+                            .frame(maxWidth: .infinity)
+                            .background(
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(Color.white.opacity(0.5))
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .stroke(Color.black, lineWidth: 1)
+                                }
+                            )
+                    }
+                }
+                .padding(.horizontal, 40)
             }
-            .padding(.horizontal, 40)
+            .padding(.vertical, 40)
+            
+            if showUserList {
+                UsersListView(isPresented: $showUserList)
+                    .environmentObject(firebaseService)
+                    .zIndex(1)
+            }
         }
-        .padding(.vertical, 40)
+        .edgesIgnoringSafeArea(showUserList ? .all : .init())
     }
 }
 
@@ -289,6 +305,41 @@ struct TaskInfoView: View {
             Spacer()
         }
         .padding()
+    }
+}
+
+struct UsersListView: View {
+    @EnvironmentObject var firebaseService: FirebaseService
+    @Binding var isPresented: Bool
+    
+    var body: some View {
+        GeometryReader { geometry in
+            VStack {
+                Text("Select User")
+                    .font(.headline)
+                    .padding()
+                
+                List(firebaseService.users) { user in
+                    Text(user.displayName) // Förutsatt att User har en displayName-egenskap
+                }
+                
+                Button(action: {
+                    isPresented = false
+                }) {
+                    Text("Close")
+                        .padding()
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(8)
+                }
+                .padding()
+            }
+            .frame(width: 300, height: 400)
+            .background(Color.white)
+            .cornerRadius(20)
+            .shadow(radius: 20)
+            .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
+        }
     }
 }
 
