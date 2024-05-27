@@ -11,7 +11,7 @@ struct ScheduleTaskView: View {
     @State private var currentDate = Date()
     @State private var selectedDates: Set<Date> = []
     @State private var showUsers = false
-    @State private var selectedUser: User? = nil
+    @State private var selectedUsers: Set<User> = []
     @ObservedObject var viewModel: TaskViewModel
     @StateObject var firebaseService = FirebaseService()
     @State private var showUserList = false
@@ -27,7 +27,7 @@ struct ScheduleTaskView: View {
                     Spacer()
                 }
                 .padding(.horizontal)
-
+                
                 // Task information
                 TaskInfoView(task: task)
                     .frame(maxWidth: .infinity)
@@ -42,7 +42,7 @@ struct ScheduleTaskView: View {
                         }
                     )
                     .padding(.horizontal, 40)
-
+                
                 // Calendar
                 VStack {
                     HStack {
@@ -97,17 +97,17 @@ struct ScheduleTaskView: View {
                                     RoundedRectangle(cornerRadius: 8)
                                         .fill(Color.clear)
                                 }
-
+                                
                                 if self.isCurrentDate(date) {
                                     RoundedRectangle(cornerRadius: 8)
                                         .stroke(Color.black, lineWidth: 2)
                                 }
-
+                                
                                 Text("\(self.dayString(from: date))")
                                     .foregroundColor(
                                         selectedDates.contains(date) ? .white :
-                                        self.isCurrentDate(date) ? .black :
-                                        (date < Date() ? .gray : .black)
+                                            self.isCurrentDate(date) ? .black :
+                                            (date < Date() ? .gray : .black)
                                     )
                                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                                     .padding(4)
@@ -123,7 +123,7 @@ struct ScheduleTaskView: View {
                                     }
                                     .layoutPriority(1)
                             }
-
+                            
                             .frame(minWidth: 40, maxWidth: .infinity, minHeight: 40, maxHeight: 40)
                         }
                     }
@@ -175,8 +175,14 @@ struct ScheduleTaskView: View {
                             )
                     }
                     
+                    if !selectedUsers.isEmpty {
+                        Text("Selected Users: \(selectedUsers.map { $0.displayName }.joined(separator: ", "))")
+                            .font(.caption)
+                            .foregroundColor(.gray)
+                    }
+                    
                     Spacer()
-
+                    
                     Button(action: {
                         if let task = task {
                             viewModel.updateTaskDueDates(task: task, dueDates: Array(selectedDates))
@@ -203,7 +209,7 @@ struct ScheduleTaskView: View {
             .padding(.vertical, 40)
             
             if showUserList {
-                UsersListView(isPresented: $showUserList)
+                UsersListView(isPresented: $showUserList, selectedUsers: $selectedUsers)
                     .environmentObject(firebaseService)
                     .zIndex(1)
             }
@@ -267,7 +273,7 @@ extension ScheduleTaskView {
 
 struct TaskInfoView: View {
     var task: Task?
-
+    
     var body: some View {
         HStack(alignment: .center) {
             VStack {
@@ -282,13 +288,13 @@ struct TaskInfoView: View {
                     )
                 Spacer()
             }
-
+            
             VStack(alignment: .leading, spacing: 5) {
                 if let task = task {
                     Text(task.title)
                         .font(.caption)
                         .foregroundColor(.gray)
-
+                    
                     Text(task.title)
                         .font(.headline)
                     
@@ -301,7 +307,7 @@ struct TaskInfoView: View {
                 }
             }
             .padding(.leading, 10)
-
+            
             Spacer()
         }
         .padding()
@@ -311,6 +317,7 @@ struct TaskInfoView: View {
 struct UsersListView: View {
     @EnvironmentObject var firebaseService: FirebaseService
     @Binding var isPresented: Bool
+    @Binding var selectedUsers: Set<User>
     
     var body: some View {
         GeometryReader { geometry in
@@ -320,11 +327,25 @@ struct UsersListView: View {
                     .padding()
                 
                 List(firebaseService.users) { user in
-                    Text(user.displayName)
+                    HStack {
+                        Text(user.displayName)
+                        Spacer()
+                        if selectedUsers.contains(user) {
+                            Image(systemName: "checkmark")
+                                .foregroundColor(.blue)
+                        }
+                    }
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        if selectedUsers.contains(user) {
+                            selectedUsers.remove(user)
+                        } else {
+                            selectedUsers.insert(user)
+                        }
+                    }
                 }
                 
                 HStack {
-                    
                     Button(action: {
                         isPresented = false
                     }) {
@@ -343,7 +364,7 @@ struct UsersListView: View {
                     .padding()
                     
                     Button(action: {
-                        // update assigned property
+                        isPresented = false
                     }) {
                         Text("Add")
                             .padding()
@@ -377,7 +398,7 @@ struct ScheduleTaskView_Previews: PreviewProvider {
             dueDates: [Date()],
             specificDate: Date(),
             isCompleted: false,
-            assignedTo: "User",
+            assignedTo: ["User"],
             createdBy: "User",
             createdAt: Date(),
             familyId: "Family1",
