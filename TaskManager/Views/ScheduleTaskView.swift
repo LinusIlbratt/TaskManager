@@ -320,19 +320,44 @@ struct UsersListView: View {
                     .padding()
                 
                 List(firebaseService.users) { user in
-                    Text(user.displayName) // Förutsatt att User har en displayName-egenskap
+                    Text(user.displayName) 
                 }
                 
-                Button(action: {
-                    isPresented = false
-                }) {
-                    Text("Close")
-                        .padding()
-                        .background(Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(8)
+                HStack {
+                    
+                    Button(action: {
+                        isPresented = false
+                    }) {
+                        Text("Close")
+                            .padding()
+                            .foregroundColor(.black)
+                            .background(
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(Color.white.opacity(0.5))
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .stroke(Color.black, lineWidth: 1)
+                                }
+                            )
+                    }
+                    .padding()
+                    
+                    Button(action: {
+                        // update assigned property
+                    }) {
+                        Text("Add")
+                            .padding()
+                            .foregroundColor(.black)
+                            .background(
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(Color.white.opacity(0.5))
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .stroke(Color.black, lineWidth: 1)
+                                }
+                            )
+                    }
                 }
-                .padding()
             }
             .frame(width: 300, height: 400)
             .background(Color.white)
