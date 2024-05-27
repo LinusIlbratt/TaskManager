@@ -47,18 +47,21 @@ class FirebaseService: ObservableObject {
     }
     
     func fetchUsers() {
-        db.collection("users").getDocuments { (querySnapshot, error) in
+            db.collection("users").getDocuments { (querySnapshot, error) in
                 if let error = error {
                     print("Error getting documents: \(error)")
                 } else {
                     if let querySnapshot = querySnapshot {
                         self.users = querySnapshot.documents.compactMap { document -> User? in
-                            try? document.data(as: User.self)
+                            let data = document.data()
+                            print("Fetched user data: \(data)") // Debugging line
+                            return try? document.data(as: User.self)
                         }
+                        print("Users count: \(self.users.count)") // Debugging line
                     }
                 }
             }
-    }
+        }
     
     // Function to fetch tasks assigned to a specific user
     func fetchTasks(assignedTo userId: String) {
