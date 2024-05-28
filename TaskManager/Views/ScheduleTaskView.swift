@@ -27,7 +27,7 @@ struct ScheduleTaskView: View {
                     Spacer()
                 }
                 .padding(.horizontal)
-                
+
                 // Task information
                 TaskInfoView(task: task)
                     .frame(maxWidth: .infinity)
@@ -42,7 +42,7 @@ struct ScheduleTaskView: View {
                         }
                     )
                     .padding(.horizontal, 40)
-                
+
                 // Calendar
                 VStack {
                     HStack {
@@ -92,22 +92,22 @@ struct ScheduleTaskView: View {
                             ZStack {
                                 if selectedDates.contains(date) {
                                     RoundedRectangle(cornerRadius: 8)
-                                        .fill(Color.black)
+                                        .fill(Color.blue)
                                 } else {
                                     RoundedRectangle(cornerRadius: 8)
                                         .fill(Color.clear)
                                 }
-                                
+
                                 if self.isCurrentDate(date) {
                                     RoundedRectangle(cornerRadius: 8)
-                                        .stroke(Color.black, lineWidth: 2)
+                                        .stroke(Color.blue, lineWidth: 2)
                                 }
-                                
+
                                 Text("\(self.dayString(from: date))")
                                     .foregroundColor(
                                         selectedDates.contains(date) ? .white :
-                                            self.isCurrentDate(date) ? .black :
-                                            (date < Date() ? .gray : .black)
+                                        self.isCurrentDate(date) ? .black :
+                                        (date < Date() ? .gray : .black)
                                     )
                                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                                     .padding(4)
@@ -123,7 +123,7 @@ struct ScheduleTaskView: View {
                                     }
                                     .layoutPriority(1)
                             }
-                            
+
                             .frame(minWidth: 40, maxWidth: .infinity, minHeight: 40, maxHeight: 40)
                         }
                     }
@@ -182,10 +182,11 @@ struct ScheduleTaskView: View {
                     }
                     
                     Spacer()
-                    
+
                     Button(action: {
                         if let task = task {
-                            viewModel.updateTaskDueDates(task: task, dueDates: Array(selectedDates))
+                            viewModel.updateTaskDueDates(task: task, dueDates: Array(selectedDates))                           
+                            viewModel.updateTaskAssignedTo(task: task, assignedTo: selectedUsers.compactMap { $0.id })
                             dismiss()
                         }
                     }) {
