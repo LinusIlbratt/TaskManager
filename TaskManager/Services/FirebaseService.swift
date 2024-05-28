@@ -90,6 +90,7 @@ class FirebaseService: ObservableObject {
                 print("Fetched \(self.userTasks.count) tasks assigned to \(userId)") // Debugging line
             }
     }
+   
     
     // Function to update task completion status
     func updateTaskInDatabase(taskId: String, isCompleted: Bool) {
@@ -102,6 +103,21 @@ class FirebaseService: ObservableObject {
                 print("Error updating task: \(error)")
             } else {
                 print("Task successfully updated")
+            }
+        }
+    }
+    
+    func updateTaskAssignedTo(task: Task, assignedTo: [String]) {
+        guard let taskId = task.id else {
+            print("Task ID not found")
+            return
+        }
+        
+        db.collection("tasks").document(taskId).updateData(["assignedTo": assignedTo]) { error in
+            if let error = error {
+                print("Error updating task: \(error)")
+            } else {
+                print("Task assignedTo updated successfully")
             }
         }
     }
