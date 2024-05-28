@@ -66,7 +66,7 @@ class FirebaseService: ObservableObject {
     // Function to fetch tasks assigned to a specific user
     func fetchTasks(assignedTo userId: String) {
         db.collection("tasks")
-            .whereField("assignedTo", isEqualTo: userId)
+            .whereField("assignedTo", arrayContains: userId)
             .addSnapshotListener { (querySnapshot, error) in
                 if let error = error {
                     print("Error getting tasks: \(error)")
