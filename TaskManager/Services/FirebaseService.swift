@@ -19,6 +19,8 @@ class FirebaseService: ObservableObject {
     // New list for userTasks
     @Published var userTasks: [Task] = []
     
+    @Published var users: [User] = []
+    
     func fetchTasks() {
         db.collection("tasks").addSnapshotListener { (querySnapshot, error) in
             if let error = error {
@@ -44,10 +46,27 @@ class FirebaseService: ObservableObject {
         }
     }
     
+    func fetchUsers() {
+            db.collection("users").getDocuments { (querySnapshot, error) in
+                if let error = error {
+                    print("Error getting documents: \(error)")
+                } else {
+                    if let querySnapshot = querySnapshot {
+                        self.users = querySnapshot.documents.compactMap { document -> User? in
+                            let data = document.data()
+                            print("Fetched user data: \(data)") // Debugging line
+                            return try? document.data(as: User.self)
+                        }
+                        print("Users count: \(self.users.count)") // Debugging line
+                    }
+                }
+            }
+        }
+    
     // Function to fetch tasks assigned to a specific user
     func fetchTasks(assignedTo userId: String) {
         db.collection("tasks")
-            .whereField("assignedTo", isEqualTo: userId)
+            .whereField("assignedTo", arrayContains: userId)
             .addSnapshotListener { (querySnapshot, error) in
                 if let error = error {
                     print("Error getting tasks: \(error)")
@@ -71,6 +90,7 @@ class FirebaseService: ObservableObject {
                 print("Fetched \(self.userTasks.count) tasks assigned to \(userId)") // Debugging line
             }
     }
+   
     
     // Function to update task completion status
     func updateTaskInDatabase(taskId: String, isCompleted: Bool) {
@@ -83,6 +103,21 @@ class FirebaseService: ObservableObject {
                 print("Error updating task: \(error)")
             } else {
                 print("Task successfully updated")
+            }
+        }
+    }
+    
+    func updateTaskAssignedTo(task: Task, assignedTo: [String]) {
+        guard let taskId = task.id else {
+            print("Task ID not found")
+            return
+        }
+        
+        db.collection("tasks").document(taskId).updateData(["assignedTo": assignedTo]) { error in
+            if let error = error {
+                print("Error updating task: \(error)")
+            } else {
+                print("Task assignedTo updated successfully")
             }
         }
     }
