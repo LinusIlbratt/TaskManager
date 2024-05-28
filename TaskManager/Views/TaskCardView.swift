@@ -40,7 +40,7 @@ struct TaskCardView: View {
                                     .foregroundColor(.white)
                                     .padding(.bottom, 15)
                             }
-                            .padding(20)
+                            .padding(10)
                             
                         }
                     }
@@ -74,19 +74,24 @@ struct TaskCardView: View {
                 }
                 .contentShape(Rectangle()) // Make the entire HStack tappable
                 .onTapGesture {
-                    // Handle tap on the whole card here if needed
-                    print("Card tapped") // Placeholder for card tap action
+                // Handle tap on the whole card here if needed
+                    withAnimation {
+                        taskVM.selectedTask = task
+                    }
                 }
                 .frame(maxWidth: .infinity)
                 .background(
                     RoundedRectangle(cornerRadius: 10)
                         .stroke(Color.gray, lineWidth: 1)
                 )
-                .padding()
+                .padding(.horizontal)
+                .padding(.bottom)
 
                 // "Not Done" button
                 Button(action: {
-                    toggleTaskCompletion()
+                    withAnimation {
+                        toggleTaskCompletion()
+                    }
                 }) {
                     Text(isCompleted ? "Done" : "Not Done")
                         .padding(.horizontal, 10)
@@ -96,6 +101,9 @@ struct TaskCardView: View {
                         .foregroundColor(isCompleted ? .white : .primary)
                 }
                 .padding([.trailing, .bottom], 20)
+                .background(Color.clear) // Ensure the button has a tappable area
+                .zIndex(1) // Ensure button is on top
+                .padding(10) // Increase the tappable area
             }
         }
     
