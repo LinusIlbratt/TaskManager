@@ -31,7 +31,7 @@ class TaskViewModel: ObservableObject {
     
     var auth = Auth.auth()
     private var db = Firestore.firestore()
-    private var firestoreServices = FirebaseService()
+    private var firebaseService = FirebaseService()
     private var cancellables = Set<AnyCancellable>()
     
     @Published var selectedDate: Date? {
@@ -43,7 +43,7 @@ class TaskViewModel: ObservableObject {
     init() {
         // First run and fetch tasks
         guard let user = auth.currentUser else { return }
-        firestoreServices.fetchTasks(assignedTo: user.uid)
+        firebaseService.fetchTasks(assignedTo: user.uid)
         
         // Thanks to Combine, bind these tasks to our array list
         bindTasks()
@@ -92,11 +92,15 @@ class TaskViewModel: ObservableObject {
     }
     
     func updateTaskDueDates(task: Task, dueDates: [Date]) {
-        firestoreServices.updateTaskDueDates(task: task, dueDates: dueDates)
+        firebaseService.updateTaskDueDates(task: task, dueDates: dueDates)
     }
     
+    func updateTaskAssignedTo(task: Task, assignedTo: [String]) {
+            firebaseService.updateTaskAssignedTo(task: task, assignedTo: assignedTo)
+        }
+    
     private func bindTasks() {
-        firestoreServices.$userTasks
+        firebaseService.$userTasks
             .receive(on: DispatchQueue.main)
             .sink { [weak self] tasks in
                 self?.allTasksForThisUser = tasks
@@ -106,19 +110,19 @@ class TaskViewModel: ObservableObject {
     
     func fetchUserTasks() {
             guard let user = auth.currentUser else { return }
-            firestoreServices.fetchTasks(assignedTo: user.uid)
+            firebaseService.fetchTasks(assignedTo: user.uid)
         }
     
     private func filterTasks() {
         if let selectedDate = selectedDate {
-            allTasksForThisUser = firestoreServices.userTasks.filter { task in
+            allTasksForThisUser = firebaseService.userTasks.filter { task in
                 if let dueDate = task.dueDates?.first {
                     return calendar.isDate(dueDate, inSameDayAs: selectedDate)
                 }
                 return false
             }
         } else {
-            allTasksForThisUser = firestoreServices.userTasks
+            allTasksForThisUser = firebaseService.userTasks
         }
     }
 
@@ -128,7 +132,7 @@ class TaskViewModel: ObservableObject {
             allTasksForThisUser[index].isCompleted = isCompleted
             
             // Update in firebase
-            firestoreServices.updateTaskInDatabase(taskId: taskId, isCompleted: isCompleted)
+            firebaseService.updateTaskInDatabase(taskId: taskId, isCompleted: isCompleted)
         }
     }
 }
