@@ -40,6 +40,8 @@ class TaskViewModel: ObservableObject {
         }
     }
     
+    @Published var selectedTask: Task?
+    
     init() {
         // First run and fetch tasks
         guard let user = auth.currentUser else { return }
