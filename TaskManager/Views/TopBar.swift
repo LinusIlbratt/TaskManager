@@ -9,7 +9,16 @@ import SwiftUI
 
 struct TopBar: View {
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        HStack {
+            Spacer()
+            Image("tasktext")
+                .resizable()
+                .scaledToFit()
+                .frame(height: 30)
+            Spacer()
+        }
+        .padding()
+        .background(Color.gray.opacity(0.3))
     }
 }
 
