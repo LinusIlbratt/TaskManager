@@ -18,12 +18,15 @@ struct TaskListView: View {
     @StateObject private var taskVM = TaskViewModel()
     @State private var selectedDate: Date? = Date() // Initialize to today's date
     
-    //Keep track of selected task in the list so we can show details of it
-//    @State private var selectedTask: Task? = nil
     
     var body: some View {
+        
+        //include filter
+        FilterButtonView(selectedFilter: $taskVM.ourFilter)
+        
         ZStack {
             VStack {
+                
                 // Include calendarView
                 CalendarView(selectedDate: $selectedDate)
                 
@@ -51,7 +54,7 @@ struct TaskListView: View {
             //ViewmModel makes sure selectedTask is update with latest state
             //CardView handles tap gesture for both card (detail view) and Done-button
             .blur(radius:  taskVM.selectedTask != nil ? 5 : 0)
-
+            
             if let task =  taskVM.selectedTask {
                 ZStack {
                     Color.black.opacity(0.4)
@@ -61,7 +64,7 @@ struct TaskListView: View {
                                 taskVM.selectedTask = nil
                             }
                         }
-
+                    
                     VStack {
                         Spacer()
                         TaskDetailView(task: task)
@@ -86,23 +89,71 @@ struct TaskListView: View {
         }
     }
     
-    // Filter task list based on selected date in calendar view
+    // Filter task list based on selected date and filter in calendar view
     var filteredTasks: [Task] {
-        if let selectedDate = selectedDate {
-            return taskVM.allTasksForThisUser.filter { task in
-                if let dueDates = task.dueDates {
-                    return dueDates.contains { dueDate in
-                        Calendar.current.isDate(dueDate, inSameDayAs: selectedDate)
-                    }
+        let tasksForSelectedDate = taskVM.allTasksForThisUser.filter { task in
+            if let dueDates = task.dueDates {
+                return dueDates.contains { dueDate in
+                    Calendar.current.isDate(dueDate, inSameDayAs: selectedDate ?? Date())
                 }
-                return false
             }
-        } else {
-            return taskVM.allTasksForThisUser
+            return false
+        }
+        //Continue to filter based on isCompleted
+        switch taskVM.ourFilter {
+        case .upcoming:
+            return tasksForSelectedDate.filter { !$0.isCompleted }
+        case .completed:
+            return tasksForSelectedDate.filter { $0.isCompleted }
         }
     }
 }
 
 
+enum TaskFilter {
+    case upcoming
+    case completed
+}
+
+struct FilterButtonView: View {
+    @Binding var selectedFilter: TaskFilter
+    
+    var body: some View {
+        VStack {
+            Text("TaskMört")
+                .padding()
+                .font(.title)
+            
+            HStack(spacing: 20) {
+                Button(action: {
+                    selectedFilter = .upcoming
+                }) {
+                    Text("Upcoming")
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 5)
+                        .background(selectedFilter == .upcoming ? Color.gray : Color(UIColor.systemGray4))
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                }
+                
+                Button(action: {
+                    selectedFilter = .completed
+                }) {
+                    Text("Completed")
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 5)
+                        .background(selectedFilter == .completed ? Color.gray : Color(UIColor.systemGray4))
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 10)
+            .background(Color(UIColor.systemGray5))
+            .cornerRadius(10) // Lägg till hörnrundning för hela bakgrunden
+        }
+    }
+}
 
 

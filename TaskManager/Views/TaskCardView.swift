@@ -95,15 +95,15 @@ struct TaskCardView: View {
                 }) {
                     Text(isCompleted ? "Done" : "Not Done")
                         .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
+                        .padding(.vertical, 10)
                         .background(isCompleted ? Color.gray.opacity(0.8) : Color.gray.opacity(0.2))
                         .cornerRadius(10)
                         .foregroundColor(isCompleted ? .white : .primary)
                 }
                 .padding([.trailing, .bottom], 20)
-                .background(Color.clear) // Ensure the button has a tappable area
+                .background(Color.clear) //Ensure the button has a tappable area
                 .zIndex(1) // Ensure button is on top
-                .padding(10) // Increase the tappable area
+                .padding(10)
             }
         }
     
