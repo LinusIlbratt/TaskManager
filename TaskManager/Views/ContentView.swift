@@ -127,7 +127,7 @@ struct SignInView : View {
                 
                 
                 Button(action: {
-                    if userName.isEmpty {
+	                    if userName.isEmpty {
                         alertTitle = "An error occured"
                         alertMessage = "You missed fill in your email, try again"
                         showAlert = true
@@ -304,5 +304,5 @@ struct SignInView : View {
     
 }
 #Preview {
-    ContentView()
+    ProfileView(signedIn: .constant(true))
 }
