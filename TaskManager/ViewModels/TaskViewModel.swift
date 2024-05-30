@@ -42,6 +42,8 @@ class TaskViewModel: ObservableObject {
     
     @Published var selectedTask: Task?
     
+    @Published var ourFilter: TaskFilter = .upcoming
+    
     init() {
         // First run and fetch tasks
         guard let user = auth.currentUser else { return }
