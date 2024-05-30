@@ -158,12 +158,12 @@ struct AddTaskView: View {
                         .shadow(radius: 1)
                         .padding(.horizontal, 16)
                     
-                    TextField("Select category", text: $viewModel.assignedTo)
+                    /*TextField("Select category", text: $viewModel.assignedTo)
                         .padding()
                         .background(Color.white)
                         .cornerRadius(10)
                         .shadow(radius: 1)
-                        .padding(.horizontal, 16)
+                        .padding(.horizontal, 16)*/
                     
                     Stepper("Select points (fishes): \(viewModel.numberOfFishes)", value: $viewModel.numberOfFishes, in: 0...100)
                         .padding()
@@ -171,6 +171,9 @@ struct AddTaskView: View {
                         .cornerRadius(10)
                         .shadow(radius: 1)
                         .padding(.horizontal, 16)
+                    
+                    //Choose if you want a notification
+                    
                 }
                 
                 Spacer()
