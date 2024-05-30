@@ -9,6 +9,8 @@ import SwiftUI
 import Firebase
 import FirebaseFirestoreSwift
 
+import SwiftUI
+
 //This view acts as start page in the app, shows calendar view + things to do today
 struct TaskListView: View {
     
@@ -16,152 +18,142 @@ struct TaskListView: View {
     @StateObject private var taskVM = TaskViewModel()
     @State private var selectedDate: Date? = Date() // Initialize to today's date
     
+    
     var body: some View {
-        VStack {
-            // Include calendarView
-            CalendarView(selectedDate: $selectedDate)
-            
-            Spacer()
-            Divider()
-            
-            VStack(alignment: .leading) {
-                Text("Today's tasks")
-                    .padding()
+        
+        //include filter
+        FilterButtonView(selectedFilter: $taskVM.ourFilter)
+        
+        ZStack {
+            VStack {
                 
-                // List of to-dos
-                List {
-                    ForEach(filteredTasks) { task in
-                        // Card for each task
-                        TaskCardView(task: task, taskVM: taskVM)
-                            .listRowSeparator(.hidden)
-                            .listRowBackground(Color.clear)
+                // Include calendarView
+                CalendarView(selectedDate: $selectedDate)
+                
+                Spacer()
+                Divider()
+                
+                VStack(alignment: .leading) {
+                    Text("Today's tasks")
+                        .padding(.top)
+                        .padding(.leading)
+                    
+                    // List of to-dos
+                    List {
+                        ForEach(filteredTasks) { task in
+                            // Card for each task
+                            TaskCardView(task: task, taskVM: taskVM)
+                                .listRowSeparator(.hidden)
+                                .listRowBackground(Color.clear)
+                        }
+                    }
+                    .listStyle(PlainListStyle())
+                }
+            }
+            //Lets show a popup with details of the task
+            //ViewmModel makes sure selectedTask is update with latest state
+            //CardView handles tap gesture for both card (detail view) and Done-button
+            .blur(radius:  taskVM.selectedTask != nil ? 5 : 0)
+            
+            if let task =  taskVM.selectedTask {
+                ZStack {
+                    Color.black.opacity(0.4)
+                        .edgesIgnoringSafeArea(.all)
+                        .onTapGesture {
+                            withAnimation {
+                                taskVM.selectedTask = nil
+                            }
+                        }
+                    
+                    VStack {
+                        Spacer()
+                        TaskDetailView(task: task)
+                            .background(Color.white)
+                            .cornerRadius(20)
+                            .shadow(radius: 10)
+                            .padding()
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 20)
+                                    .stroke(Color.gray, lineWidth: 1)
+                            )
+                            .transition(.move(edge: .bottom))
+                        Spacer()
                     }
                 }
-                .listStyle(PlainListStyle())
             }
         }
         .onAppear {
-            // Update ViewModel selectedDate to trigger filtering (when app launches)
+            //Update ViewModel selectedDate to trigger filtering (when app launches)
             taskVM.selectedDate = selectedDate
             taskVM.fetchUserTasks()
         }
     }
     
-    // Filter task list based on selected date in calendar view
-        var filteredTasks: [Task] {
-            if let selectedDate = selectedDate {
-                return taskVM.allTasksForThisUser.filter { task in
-                    if let dueDates = task.dueDates {
-                        return dueDates.contains { dueDate in
-                            Calendar.current.isDate(dueDate, inSameDayAs: selectedDate)
-                        }
-                    }
-                    return false
+    // Filter task list based on selected date and filter in calendar view
+    var filteredTasks: [Task] {
+        let tasksForSelectedDate = taskVM.allTasksForThisUser.filter { task in
+            if let dueDates = task.dueDates {
+                return dueDates.contains { dueDate in
+                    Calendar.current.isDate(dueDate, inSameDayAs: selectedDate ?? Date())
                 }
-            } else {
-                return taskVM.allTasksForThisUser
             }
+            return false
         }
-    }
-
-//Each TaskCard extracted as separate views
-struct TaskCardView: View {
-    
-    var task : Task
-    @ObservedObject var taskVM: TaskViewModel
-    @State private var isCompleted: Bool
-    
-    init(task: Task, taskVM: TaskViewModel) {
-        self.task = task
-        self.taskVM = taskVM
-        self._isCompleted = State(initialValue: task.isCompleted)
-    }
-    
-    var body: some View {
-            ZStack(alignment: .bottomTrailing) {
-                HStack {
-                    // Circle with the number of fishes available
-                    VStack {
-                        ZStack {
-                            Circle()
-                                .fill(Color.black)
-                                .frame(width: 70, height: 70)
-                                
-                            VStack {
-                                Text("\(task.numberOfFishes)")
-                                    .font(.title)
-                                    .foregroundColor(.white)
-                                    .padding(.top, 10)
-                                Text("Fishes")
-                                    .font(.caption)
-                                    .foregroundColor(.white)
-                                    .padding(.bottom, 15)
-                            }
-                            .padding(20)
-                            
-                        }
-                    }
-                    .padding(.leading, 10)
-                    .padding(.trailing, 10)
-
-                    // Task details
-                    VStack(alignment: .leading) {
-                        Text("Cleaning")
-                            .font(.footnote)
-
-                        Text(task.title)
-                            .font(.headline)
-                        
-                        // Print formatted due dates
-                        if let dueDates = task.dueDates {
-                            ForEach(dueDates, id: \.self) { date in
-                                Text(formatDueDate(date: date))
-                                    .font(.subheadline)
-                                    .foregroundColor(.gray)
-                            }
-                        }
-                    }
-                    Spacer()
-                }
-                .contentShape(Rectangle()) // Make the entire HStack tappable
-                .onTapGesture {
-                    // Handle tap on the whole card here if needed
-                    print("Card tapped") // Placeholder for card tap action
-                }
-                .frame(maxWidth: .infinity)
-                .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color.gray, lineWidth: 1)
-                )
-                .padding()
-
-                // "Not Done" button
-                Button(action: {
-                    toggleTaskCompletion()
-                }) {
-                    Text(isCompleted ? "Done" : "Not Done")
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
-                        .background(isCompleted ? Color.gray.opacity(0.8) : Color.gray.opacity(0.2))
-                        .cornerRadius(10)
-                        .foregroundColor(isCompleted ? .white : .primary)
-                }
-                .padding([.trailing, .bottom], 10)
-            }
-        }
-    
-    // Format date in this struct directly
-    func formatDueDate(date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "dd/MM/yy"
-        return "Due \(formatter.string(from: date))"
-    }
-    
-    // Toggle task completion status and update in ViewModel
-    private func toggleTaskCompletion() {
-        if let taskId = task.id {
-            isCompleted.toggle()
-            taskVM.updateTaskCompletion(taskId: taskId, isCompleted: isCompleted)
+        //Continue to filter based on isCompleted
+        switch taskVM.ourFilter {
+        case .upcoming:
+            return tasksForSelectedDate.filter { !$0.isCompleted }
+        case .completed:
+            return tasksForSelectedDate.filter { $0.isCompleted }
         }
     }
 }
+
+
+enum TaskFilter {
+    case upcoming
+    case completed
+}
+
+struct FilterButtonView: View {
+    @Binding var selectedFilter: TaskFilter
+    
+    var body: some View {
+        VStack {
+            Text("TaskMört")
+                .padding()
+                .font(.title)
+            
+            HStack(spacing: 20) {
+                Button(action: {
+                    selectedFilter = .upcoming
+                }) {
+                    Text("Upcoming")
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 5)
+                        .background(selectedFilter == .upcoming ? Color.gray : Color(UIColor.systemGray4))
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                }
+                
+                Button(action: {
+                    selectedFilter = .completed
+                }) {
+                    Text("Completed")
+                        .padding(.horizontal, 20)
+                        .padding(.vertical, 5)
+                        .background(selectedFilter == .completed ? Color.gray : Color(UIColor.systemGray4))
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 10)
+            .background(Color(UIColor.systemGray5))
+            .cornerRadius(10) // Lägg till hörnrundning för hela bakgrunden
+        }
+    }
+}
+
+

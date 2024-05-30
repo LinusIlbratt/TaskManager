@@ -23,7 +23,7 @@ struct TaskView: View {
                 ScrollView {
                     ForEach(viewModel.tasks) { task in
                         NavigationLink(destination: ScheduleTaskView(viewModel: viewModel, task: task)) {
-                            TaskCardView(task: task, taskVM: viewModel)
+                            TaskCardListView(task: task, taskVM: viewModel)
                                 .padding(.horizontal)
                                 .padding(.top, 5)
                         }
@@ -55,6 +55,79 @@ struct TaskView: View {
         }
     }
 }
+
+struct TaskCardListView: View {
+    var task: Task
+    @ObservedObject var taskVM: TaskViewModel
+    
+    init(task: Task, taskVM: TaskViewModel) {
+        self.task = task
+        self.taskVM = taskVM
+    }
+    
+    var body: some View {
+        ZStack(alignment: .bottomTrailing) {
+            HStack {
+                // Circle with the number of fishes available
+                VStack {
+                    ZStack {
+                        Circle()
+                            .fill(Color.black)
+                            .frame(width: 70, height: 70)
+                                
+                        VStack {
+                            Text("\(task.numberOfFishes)")
+                                .font(.title)
+                                .foregroundColor(.white)
+                                .padding(.top, 10)
+                            Text("Fishes")
+                                .font(.caption)
+                                .foregroundColor(.white)
+                                .padding(.bottom, 15)
+                        }
+                        .padding(20)
+                    }
+                }
+                .padding(.leading, 10)
+                .padding(.trailing, 10)
+
+                // Task details
+                VStack(alignment: .leading) {
+                    Text("Cleaning")
+                        .font(.footnote)
+
+                    Text(task.title)
+                        .font(.headline)
+                        
+                    // Print formatted due dates
+                    if let dueDates = task.dueDates {
+                        ForEach(dueDates, id: \.self) { date in
+                            Text(formatDueDate(date: date))
+                                .font(.subheadline)
+                                .foregroundColor(.gray)
+                        }
+                    }
+                }
+                Spacer()
+            }
+            .frame(maxWidth: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color.gray, lineWidth: 1)
+            )
+            .padding()
+        }
+    }
+    
+    // Format date in this struct directly
+    func formatDueDate(date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "dd/MM/yy"
+        return "Due \(formatter.string(from: date))"
+    }
+}
+
+
 
 
 struct AddTaskView: View {
