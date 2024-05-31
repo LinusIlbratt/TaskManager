@@ -16,6 +16,12 @@ struct TaskListView: View {
     @StateObject private var taskVM = TaskViewModel()
     @State private var selectedDate: Date? = Date() // Initialize to today's date
     
+    @State private var startPosition: CGPoint = .zero
+    @State private var endPosition: CGPoint = .zero
+    @State private var showFish = false
+    @State private var fishCount = 0
+    @State private var animationTrigger = false
+    
     var body: some View {
         ZStack {
             VStack {
@@ -40,9 +46,20 @@ struct TaskListView: View {
                     List {
                         ForEach(filteredTasks) { task in
                             // Card for each task
-                            TaskCardView(task: task, taskVM: taskVM)
-                                .listRowSeparator(.hidden)
-                                .listRowBackground(Color.clear)
+                            TaskCardView(
+                                task: task,
+                                taskVM: taskVM,
+                                startPosition: $startPosition,
+                                onTaskCompleted: {
+                                    self.fishCount = task.numberOfFishes
+                                    self.showFish = true
+                                    withAnimation {
+                                        self.animationTrigger = true
+                                    }
+                                }
+                            )
+                            .listRowSeparator(.hidden)
+                            .listRowBackground(Color.clear)
                         }
                     }
                     .listStyle(PlainListStyle())
@@ -76,12 +93,40 @@ struct TaskListView: View {
                     }
                 }
             }
+            if showFish {
+                ForEach(0..<fishCount, id: \.self) { index in
+                    FishAnimationView(animationTrigger: $animationTrigger, startPosition: startPosition, endPosition: endPosition)
+                        .position(startPosition)
+                        .onAppear {
+                            withAnimation(Animation.linear(duration: 1).delay(Double.random(in: 0...0.5))) {
+                                self.animationTrigger = true
+                            }
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 0.7) {
+                                self.showFish = false
+                                self.animationTrigger = false // Reset animation trigger
+                            }
+                        }
+                }
+            }
         }
         .onAppear {
             //Update ViewModel selectedDate to trigger filtering (when app launches)
             taskVM.selectedDate = selectedDate
             taskVM.fetchUserTasks()
         }
+        .background(
+                    GeometryReader { geo in
+                        Color.clear
+                            .onAppear {
+                                DispatchQueue.main.async {
+                                    // Set end position to the bottom right corner
+                                    let screenBounds = UIScreen.main.bounds
+                                    self.endPosition = CGPoint(x: screenBounds.maxX - 10, y: screenBounds.maxY - 30)
+                                    print("End Position: \(self.endPosition)") // Debugging line to check end position
+                                }
+                            }
+                    }
+                )
     }
     
     //Filter task list based on selected date and filter in calendar view
