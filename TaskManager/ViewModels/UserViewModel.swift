@@ -17,6 +17,68 @@ class UserViewModel: ObservableObject {
     private var db = Firestore.firestore()
     private var firestoreServices = FirebaseService()
     
+    func addGroup(name : String, description : String) {
+        let group = Groups(name: name, description: description)
+        do {
+            let groupRef = try db.collection("groups").addDocument(from: group)
+            addUserTo(groupID: groupRef.documentID)
+            
+        } catch {
+            print ("Error adding group: \(error)")
+        }
+    }
+    
+    func addUserTo(groupID: String, currentUserID : String? = nil){
+        let userID = currentUserID ?? (auth.currentUser?.uid ?? "")
+        
+        guard !userID.isEmpty else {
+            print("user missing/not logged in")
+            return
+        }
+        
+        
+        let userRef = db.collection("users").document(userID)
+        userRef.getDocument { document, error in
+            if let error = error {
+                print("error get user from firebase")
+                return
+            }
+            
+            guard let document = document, document.exists else {
+                print("user is missing")
+                return
+            }
+            
+            var userData = document.data() ?? [:]
+            
+            if var userGroups = userData["groups"] as? [String] {
+                if !userGroups.contains(groupID) {
+                    userGroups.append(groupID)
+                    userData["groups"] = userGroups
+                    userRef.setData(userData) { error in
+                        if let error = error {
+                            print("errpr adding group")
+                        } else {
+                            print("group added")
+                        }
+                    }
+                } else {
+                    print("user already in group")
+                }
+            } else {
+                userData["groups"] = [groupID]
+                userRef.setData(userData) { error in
+                    if let error = error {
+                        print("error updating user with group")
+                    } else {
+                        print("group added to user")
+                    }
+                }
+            }
+
+        }
+    }
+    
     func addUser(user : User) {
         do {
             _ = try db.collection("users").document(user.id ?? UUID().uuidString).setData(from: user)

@@ -10,10 +10,45 @@ import FirebaseAuth
 
 struct ProfileView: View {
 @Binding var signedIn : Bool
+@State private var navigateToNewGroup = false
+    
 
 var body: some View {
-        VStack {
+        VStack(alignment: .leading, spacing: 20) {
+            Text("Manage Groups")
+                .font(.title)
+                .bold()
+                .padding(.bottom, 20)
+                .padding(.horizontal, 20)
+                        
+            //List groups you are member of
+            
+            
             Spacer()
+            
+            
+            Button(action: {
+                //Manage family
+                navigateToNewGroup = true
+            }) {
+                Text("Create New Group")
+                
+                    .fontWeight(.bold)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.clear)
+                    .foregroundColor(.black)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color.black, lineWidth: 1)
+                    )
+                
+            }
+            .navigationDestination(isPresented: $navigateToNewGroup) {
+                NewGroupView(signedIn: $signedIn, groupName: "", description: "")
+            }
+                                      
+            .padding(.horizontal, 20)
             
             Button(action: {
                 do {

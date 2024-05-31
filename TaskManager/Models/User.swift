@@ -13,4 +13,5 @@ struct User: Identifiable, Codable, Hashable {
     var email: String
     var displayName: String
     var assignedTasks: [String]?
+    var groups: [String]?
 }
