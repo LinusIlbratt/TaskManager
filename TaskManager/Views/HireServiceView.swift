@@ -15,6 +15,9 @@ struct HireServiceView: View {
     @State private var serviceType = ""
     @State private var additionalNotes = ""
     @State private var showingConfirmation = false
+    @State var signedIn = false
+    
+    @Environment(\.presentationMode) var presentationMode
     
     var body: some View {
         
@@ -45,6 +48,7 @@ struct HireServiceView: View {
                 Button(action: {
                     // Handle the booking submission here
                     submitBooking()
+                    clearTextFields()
                 }) {
                     Text("Submit")
                         .font(.headline)
@@ -61,17 +65,20 @@ struct HireServiceView: View {
                         )
                 }
                 .padding(.top, 20)
+                
             }
             .padding()
-            .background(Color(UIColor.white)) // Bakgrund för hela vyn
-            .cornerRadius(10) // Rundade hörn för att matcha bilden
-            .padding() // Yttre padding för att skapa en snygg marginal
+            .background(Color(UIColor.white))
+            .cornerRadius(10)
+            .padding()
             .navigationBarTitle("Book Service", displayMode: .inline)
             .alert(isPresented: $showingConfirmation) {
                 Alert(
                     title: Text("Booking Confirmed!"),
                     message: Text("\nYour booking request has been sent to our cleaning service. You will receive a confirmation via email shortly.\n\nPlease check your email for more information and further instructions.\n\nIf you have any questions or need to modify your booking, please do not hesitate to contact us."),
-                    dismissButton: .default(Text("OK"))
+                    dismissButton: .default(Text("OK")) {
+                        self.presentationMode.wrappedValue.dismiss()
+                    }
                 )
             }
         }
@@ -84,6 +91,15 @@ struct HireServiceView: View {
         
         // Show confirmation alert
         showingConfirmation = true
+    }
+    
+    func clearTextFields() {
+        name = ""
+        email = ""
+        address = ""
+        serviceType = ""
+        additionalNotes = ""
+        
     }
 
 }
