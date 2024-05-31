@@ -11,6 +11,7 @@ import FirebaseAuth
 struct ProfileView: View {
 @Binding var signedIn : Bool
 @State private var navigateToNewGroup = false
+@State private var navigateToHireService = false
     
 
 var body: some View {
@@ -48,6 +49,26 @@ var body: some View {
                 NewGroupView(signedIn: $signedIn, groupName: "", description: "")
             }
                                       
+            .padding(.horizontal, 20)
+            
+            Button(action: {
+                navigateToHireService = true
+            }, label: {
+                Text("Hire Service")
+                    .fontWeight(.bold)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.clear)
+                    .foregroundColor(.black)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color.black, lineWidth: 1)
+                    )
+
+            })
+            .navigationDestination(isPresented: $navigateToHireService) {
+                HireServiceView()
+            }
             .padding(.horizontal, 20)
             
             Button(action: {
