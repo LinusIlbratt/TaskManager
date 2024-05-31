@@ -9,8 +9,6 @@ import SwiftUI
 import Firebase
 import FirebaseFirestoreSwift
 
-import SwiftUI
-
 //This view acts as start page in the app, shows calendar view + things to do today
 struct TaskListView: View {
     
@@ -18,20 +16,16 @@ struct TaskListView: View {
     @StateObject private var taskVM = TaskViewModel()
     @State private var selectedDate: Date? = Date() // Initialize to today's date
     
-    
     var body: some View {
-        VStack {
-            //lets include topbar
-            TopBar()
-            //include filter
-            FilterButtonView(selectedFilter: $taskVM.ourFilter)
-        }
-        .padding(.top)
-        
         ZStack {
             VStack {
+                //Include topbar
+                TopBar()
+                //Include filter
+                FilterButtonView(selectedFilter: $taskVM.ourFilter)
+                    .padding(.top)
                 
-                // Include calendarView
+                //Include calendarView
                 CalendarView(selectedDate: $selectedDate)
                 
                 Spacer()
@@ -54,12 +48,9 @@ struct TaskListView: View {
                     .listStyle(PlainListStyle())
                 }
             }
-            //Lets show a popup with details of the task
-            //ViewmModel makes sure selectedTask is update with latest state
-            //CardView handles tap gesture for both card (detail view) and Done-button
-            .blur(radius:  taskVM.selectedTask != nil ? 5 : 0)
+            .blur(radius: taskVM.selectedTask != nil ? 5 : 0)
             
-            if let task =  taskVM.selectedTask {
+            if let task = taskVM.selectedTask {
                 ZStack {
                     Color.black.opacity(0.4)
                         .edgesIgnoringSafeArea(.all)
@@ -93,7 +84,7 @@ struct TaskListView: View {
         }
     }
     
-    // Filter task list based on selected date and filter in calendar view
+    //Filter task list based on selected date and filter in calendar view
     var filteredTasks: [Task] {
         let tasksForSelectedDate = taskVM.allTasksForThisUser.filter { task in
             if let dueDates = task.dueDates {
@@ -114,6 +105,7 @@ struct TaskListView: View {
 }
 
 
+
 enum TaskFilter {
     case upcoming
     case completed
@@ -123,37 +115,34 @@ struct FilterButtonView: View {
     @Binding var selectedFilter: TaskFilter
     
     var body: some View {
-
-            
-            HStack(spacing: 20) {
-                Button(action: {
-                    selectedFilter = .upcoming
-                }) {
-                    Text("Upcoming")
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 5)
-                        .background(selectedFilter == .upcoming ? Color.gray : Color(UIColor.systemGray4))
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                }
-                
-                Button(action: {
-                    selectedFilter = .completed
-                }) {
-                    Text("Completed")
-                        .padding(.horizontal, 20)
-                        .padding(.vertical, 5)
-                        .background(selectedFilter == .completed ? Color.gray : Color(UIColor.systemGray4))
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
-                }
+        HStack(spacing: 20) {
+            Button(action: {
+                selectedFilter = .upcoming
+            }) {
+                Text("Upcoming")
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 5)
+                    .background(selectedFilter == .upcoming ? Color.gray : Color(UIColor.systemGray4))
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
             }
-            .frame(maxWidth: .infinity)
-            .padding(.horizontal, 20)
-            .padding(.vertical, 10)
-            .background(Color(UIColor.systemGray5))
-            .cornerRadius(10) // Lägg till hörnrundning för hela bakgrunden
-        
+            
+            Button(action: {
+                selectedFilter = .completed
+            }) {
+                Text("Completed")
+                    .padding(.horizontal, 20)
+                    .padding(.vertical, 5)
+                    .background(selectedFilter == .completed ? Color.gray : Color(UIColor.systemGray4))
+                    .foregroundColor(.white)
+                    .cornerRadius(10)
+            }
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, 20)
+        .padding(.vertical, 10)
+        .background(Color(UIColor.systemGray5))
+        .cornerRadius(10)
     }
 }
 
