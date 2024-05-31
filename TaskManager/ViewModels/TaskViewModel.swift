@@ -130,14 +130,86 @@ class TaskViewModel: ObservableObject {
         }
     }
 
-    
     func updateTaskCompletion(taskId: String, isCompleted: Bool) {
         if let index = allTasksForThisUser.firstIndex(where: { $0.id == taskId }) {
             allTasksForThisUser[index].isCompleted = isCompleted
             
-            // Update in firebase
-            firebaseService.updateTaskInDatabase(taskId: taskId, isCompleted: isCompleted)
+            let task = allTasksForThisUser[index]
+            
+            //Guard userId
+            guard let userId = auth.currentUser?.uid else { return }
+            
+            //Update task in Firebase
+            let taskUpdate = firebaseService.updateTaskInDatabase(taskId: taskId, isCompleted: isCompleted)
+            
+            //Update user's totalAmountOfFishesCollected based on task completion status
+            let numberOfFishes = task.numberOfFishes
+            
+            //combine publishers
+            let cancellable = taskUpdate
+                .handleEvents(receiveOutput: { _ in
+                   //Task update completed
+                })
+                .flatMap { _ -> AnyPublisher<Void, Never> in
+                   //Proceeding to user update, include number of fishes
+                    return self.updateUserFishesCollected(userId: userId, numberOfFishes: numberOfFishes, isCompleted: isCompleted)
+                }
+                .sink(receiveCompletion: { completion in
+                    switch completion {
+                    case .finished:
+                        print("Task and user update completed successfully.")
+                    case .failure(let error):
+                        print("Error updating task or user: \(error)")
+                    }
+                }, receiveValue: { _ in })
+            
+            //Store the cancellable
+            self.cancellables.insert(cancellable)
+        } else {
+            print("Task not found")
         }
     }
+
+
+
+    
+    func updateUserFishesCollected(userId: String, numberOfFishes: Int, isCompleted: Bool) -> AnyPublisher<Void, Never> {
+        return Future { promise in
+            let userFetch = self.firebaseService.getUserById(userId: userId)
+            
+            userFetch
+                .flatMap { user -> AnyPublisher<Void, Never> in
+                    guard var user = user else {
+                        return Just(()).eraseToAnyPublisher()
+                    }
+                    
+                    // Update totalAmountOfFishesCollected based on completion status
+                    if isCompleted {
+                        user.totalAmountOfFishesCollected += numberOfFishes
+                    } else {
+                        user.totalAmountOfFishesCollected = max(0, user.totalAmountOfFishesCollected - numberOfFishes)
+                    }
+                    
+                    // Perform the update for the user
+                    return self.firebaseService.updateUserInDatabase(user: user).eraseToAnyPublisher()
+                }
+                .sink(receiveCompletion: { completion in
+                    switch completion {
+                    case .finished:
+                        print("User update completed inside sink")
+                        promise(.success(()))
+                    case .failure(let error):
+                        print("Error updating user: \(error)")
+                        promise(.success(()))
+                    }
+                }, receiveValue: { _ in })
+                .store(in: &self.cancellables) // Ensure to store the cancellable
+        }
+        .eraseToAnyPublisher()
+    }
+
+
+
+
 }
 

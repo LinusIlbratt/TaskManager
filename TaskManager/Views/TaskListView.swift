@@ -20,9 +20,13 @@ struct TaskListView: View {
     
     
     var body: some View {
-        
-        //include filter
-        FilterButtonView(selectedFilter: $taskVM.ourFilter)
+        VStack {
+            //lets include topbar
+            TopBar()
+            //include filter
+            FilterButtonView(selectedFilter: $taskVM.ourFilter)
+        }
+        .padding(.top)
         
         ZStack {
             VStack {
@@ -119,10 +123,7 @@ struct FilterButtonView: View {
     @Binding var selectedFilter: TaskFilter
     
     var body: some View {
-        VStack {
-            Text("TaskMört")
-                .padding()
-                .font(.title)
+
             
             HStack(spacing: 20) {
                 Button(action: {
@@ -152,7 +153,7 @@ struct FilterButtonView: View {
             .padding(.vertical, 10)
             .background(Color(UIColor.systemGray5))
             .cornerRadius(10) // Lägg till hörnrundning för hela bakgrunden
-        }
+        
     }
 }
 

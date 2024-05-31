@@ -14,4 +14,6 @@ struct User: Identifiable, Codable, Hashable {
     var displayName: String
     var assignedTasks: [String]?
     var groups: [String]?
+    //initally just total amount since registered
+    var totalAmountOfFishesCollected: Int
 }
