@@ -68,7 +68,7 @@ struct CalendarView: View {
                             }
                             .padding(.bottom, 5)
                             
-                            // If the date is today, change color
+                            //If the date is today, change color
                             if day.isToday {
                                 Text("Today")
                                     .font(.caption)
@@ -93,6 +93,9 @@ struct CalendarView: View {
         }
         //when the view is shown, lets setup the current week to be displayed
         .onAppear(perform: setupWeek)
+        .onChange(of: taskListAvailable) { _ in
+                    setupWeek()
+        }
     }
     
     //Setup calendar week at top
@@ -103,13 +106,6 @@ struct CalendarView: View {
         let calendar = Calendar.current
         let today = Date()
         let weekday = calendar.component(.weekday, from: today)
-        
-        
-        // Logga alla uppgifter för att felsöka
-        print("All tasks for this user:")
-        for task in taskDates {
-            print("Task: \(task.title), Due Dates: \(task.dueDates ?? []), isCompleted: \(task.isCompleted)")
-        }
         
         //Adjusting to get Monday as start day of the week as normal people
         let startOfWeek = calendar.date(byAdding: .day, value: -(weekday - 2), to: today)!
@@ -122,24 +118,14 @@ struct CalendarView: View {
                 let isToday = calendar.isDate(date, inSameDayAs: today)
                 let weekdaySymbol = calendar.shortWeekdaySymbols[calendar.component(.weekday, from: date) - 1]
                 
-                // Filter tasks that are not completed and that match the current date
+                //Filter tasks that are not completed and that match the current date
                 let taskCount = taskDates.filter { task in
                     !task.isCompleted && (task.dueDates?.contains(where: { dueDate in
                         calendar.isDate(dueDate, inSameDayAs: date)
                     }) ?? false)
                 }.count
                 
-                // Logga resultat för felsökning
-                print("Date: \(date), Task Count: \(taskCount)")
-                for task in taskDates {
-                    if let dueDates = task.dueDates {
-                        for dueDate in dueDates {
-                            if calendar.isDate(dueDate, inSameDayAs: date) {
-                                print("Task '\(task.title)' is due on \(date)")
-                            }
-                        }
-                    }
-                }
+
                 weekDays.append(CalendarDay(day: day, weekday: weekdaySymbol, isToday: isToday, hasEvents: taskCount)) // Use a fixed number for hasEvents
             }
         }

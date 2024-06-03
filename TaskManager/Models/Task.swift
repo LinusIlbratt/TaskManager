@@ -8,7 +8,7 @@
 import Foundation
 import FirebaseFirestoreSwift
 
-struct Task: Identifiable, Codable {
+struct Task: Identifiable, Codable, Equatable {
     @DocumentID var id: String?
     var title: String
     var description: String
