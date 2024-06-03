@@ -25,6 +25,7 @@ class TaskViewModel: ObservableObject {
     @Published var familyId: String = ""
     @Published var taskColor: String = ""
     @Published var numberOfFishes: Int = 0
+    @Published var isLoading: Bool = false
     
     let calendar = Calendar.current
     let today = Date()
@@ -54,15 +55,23 @@ class TaskViewModel: ObservableObject {
     }
     
     func fetchTasks() {
+        
+        isLoading = true
+        
         db.collection("tasks").addSnapshotListener { (querySnapshot, error) in
             guard let documents = querySnapshot?.documents else {
                 print("No documents")
+                
+                self.isLoading = false
+                
                 return
             }
             
             self.tasks = documents.compactMap { queryDocumentSnapshot -> Task? in
                 return try? queryDocumentSnapshot.data(as: Task.self)
             }
+            
+            self.isLoading = false
         }
     }
     
@@ -108,11 +117,14 @@ class TaskViewModel: ObservableObject {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] tasks in
                 self?.allTasksForThisUser = tasks
+                self?.isLoading = false
             }
             .store(in: &cancellables)
+        
     }
     
     func fetchUserTasks() {
+        isLoading = true
             guard let user = auth.currentUser else { return }
             firebaseService.fetchTasks(assignedTo: user.uid)
         }

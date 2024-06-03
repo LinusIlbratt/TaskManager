@@ -24,48 +24,63 @@ struct TaskListView: View {
     
     var body: some View {
         ZStack {
+            
             VStack {
                 //Include topbar
                 TopBar()
-                //Include filter
-                FilterButtonView(selectedFilter: $taskVM.ourFilter)
-                    .padding(.top)
                 
-                //Include calendarView
-                CalendarView(selectedDate: $selectedDate)
-                
-                Spacer()
-                Divider()
-                
-                VStack(alignment: .leading) {
-                    Text("Today's tasks")
+                //Include scrollview to allow scroll everything (especially important in landscape mode)
+                ScrollView {
+                    //Include filter
+                    FilterButtonView(selectedFilter: $taskVM.ourFilter)
                         .padding(.top)
-                        .padding(.leading)
                     
-                    // List of to-dos
-                    List {
-                        ForEach(filteredTasks) { task in
-                            // Card for each task
-                            TaskCardView(
-                                task: task,
-                                taskVM: taskVM,
-                                startPosition: $startPosition,
-                                onTaskCompleted: {
-                                    self.fishCount = task.numberOfFishes
-                                    self.showFish = true
-                                    withAnimation {
-                                        self.animationTrigger = true
+                    
+                    // Check if tasks are loaded
+                    if taskVM.isLoading {
+                        ProgressView("Loading tasks...")
+                            .padding()
+                    } else {
+                        //Include calendarView
+                        CalendarView(selectedDate: $selectedDate, taskListAvailable: $taskVM.allTasksForThisUser)
+                        
+                        Spacer()
+                        Divider()
+                        
+                        VStack(alignment: .leading) {
+                            Text("Today's tasks")
+                                .padding(.top)
+                                .padding(.leading)
+                            
+                            //List of to-dos
+                            ScrollView {
+                                LazyVStack {
+                                    ForEach(filteredTasks) { task in
+                                        // Card for each task
+                                        TaskCardView(
+                                            task: task,
+                                            taskVM: taskVM,
+                                            startPosition: $startPosition,
+                                            onTaskCompleted: {
+                                                self.fishCount = task.numberOfFishes
+                                                self.showFish = true
+                                                withAnimation {
+                                                    self.animationTrigger = true
+                                                }
+                                            }
+                                        )
+                                        .padding(.vertical, 5)
+                                        .background(Color.clear)
                                     }
                                 }
-                            )
-                            .listRowSeparator(.hidden)
-                            .listRowBackground(Color.clear)
+                            }
                         }
+                        .padding(.horizontal)
                     }
-                    .listStyle(PlainListStyle())
                 }
             }
             .blur(radius: taskVM.selectedTask != nil ? 5 : 0)
+            
             
             if let task = taskVM.selectedTask {
                 ZStack {
@@ -115,18 +130,19 @@ struct TaskListView: View {
             taskVM.fetchUserTasks()
         }
         .background(
-                    GeometryReader { geo in
-                        Color.clear
-                            .onAppear {
-                                DispatchQueue.main.async {
-                                    // Set end position to the bottom right corner
-                                    let screenBounds = UIScreen.main.bounds
-                                    self.endPosition = CGPoint(x: screenBounds.maxX - 10, y: screenBounds.maxY - 30)
-                                    print("End Position: \(self.endPosition)") // Debugging line to check end position
-                                }
-                            }
+            GeometryReader { geo in
+                Color.clear
+                    .onAppear {
+                        DispatchQueue.main.async {
+                            // Set end position to the bottom right corner
+                            let screenBounds = UIScreen.main.bounds
+                            self.endPosition = CGPoint(x: screenBounds.maxX - 10, y: screenBounds.maxY - 30)
+//                            print("End Position: \(self.endPosition)") // Debugging line to check end position
+                        }
                     }
-                )
+            }
+        )
+        
     }
     
     //Filter task list based on selected date and filter in calendar view

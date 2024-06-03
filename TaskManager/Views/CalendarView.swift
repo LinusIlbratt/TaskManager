@@ -14,6 +14,8 @@ struct CalendarView: View {
     @State private var days: [CalendarDay] = []
     @State private var selectedDayIndex: Int?
     
+    @Binding var taskListAvailable: [Task]
+    
     let calendar = Calendar.current
     
     var body: some View {
@@ -45,7 +47,7 @@ struct CalendarView: View {
                             
                             Spacer()
                             
-                            // Allows for 2 rows of dots
+                            //Allows for 2 rows of dots (more than 5 events, new row)
                             VStack(spacing: 2) {
                                 HStack(spacing: 2) {
                                     ForEach(0..<min(day.hasEvents, 5), id: \.self) { _ in
@@ -93,13 +95,25 @@ struct CalendarView: View {
         .onAppear(perform: setupWeek)
     }
     
+    //Setup calendar week at top
     func setupWeek() {
+        
+        let taskDates = taskListAvailable
+        
         let calendar = Calendar.current
         let today = Date()
         let weekday = calendar.component(.weekday, from: today)
         
+        
+        // Logga alla uppgifter för att felsöka
+        print("All tasks for this user:")
+        for task in taskDates {
+            print("Task: \(task.title), Due Dates: \(task.dueDates ?? []), isCompleted: \(task.isCompleted)")
+        }
+        
         //Adjusting to get Monday as start day of the week as normal people
         let startOfWeek = calendar.date(byAdding: .day, value: -(weekday - 2), to: today)!
+        
         
         var weekDays: [CalendarDay] = []
         for i in 0..<7 {
@@ -107,7 +121,26 @@ struct CalendarView: View {
                 let day = calendar.component(.day, from: date)
                 let isToday = calendar.isDate(date, inSameDayAs: today)
                 let weekdaySymbol = calendar.shortWeekdaySymbols[calendar.component(.weekday, from: date) - 1]
-                weekDays.append(CalendarDay(day: day, weekday: weekdaySymbol, isToday: isToday, hasEvents: 2)) // Use a fixed number for hasEvents
+                
+                // Filter tasks that are not completed and that match the current date
+                let taskCount = taskDates.filter { task in
+                    !task.isCompleted && (task.dueDates?.contains(where: { dueDate in
+                        calendar.isDate(dueDate, inSameDayAs: date)
+                    }) ?? false)
+                }.count
+                
+                // Logga resultat för felsökning
+                print("Date: \(date), Task Count: \(taskCount)")
+                for task in taskDates {
+                    if let dueDates = task.dueDates {
+                        for dueDate in dueDates {
+                            if calendar.isDate(dueDate, inSameDayAs: date) {
+                                print("Task '\(task.title)' is due on \(date)")
+                            }
+                        }
+                    }
+                }
+                weekDays.append(CalendarDay(day: day, weekday: weekdaySymbol, isToday: isToday, hasEvents: taskCount)) // Use a fixed number for hasEvents
             }
         }
         self.days = weekDays
@@ -126,7 +159,7 @@ struct CalendarView: View {
         
         return "\(monthName) \(year)"
     }
-        
+    
     
 }
 
