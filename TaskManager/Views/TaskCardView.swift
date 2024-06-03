@@ -12,100 +12,111 @@ struct TaskCardView: View {
     
     var task : Task
     @ObservedObject var taskVM: TaskViewModel
-    @State private var isCompleted: Bool
     
-    init(task: Task, taskVM: TaskViewModel) {
+    @State private var isCompleted: Bool
+    @Binding var startPosition: CGPoint
+    var onTaskCompleted: () -> Void // Callback to notify when task is completed
+    
+    init(task: Task, taskVM: TaskViewModel, startPosition: Binding<CGPoint>, onTaskCompleted: @escaping () -> Void) {
         self.task = task
         self.taskVM = taskVM
         self._isCompleted = State(initialValue: task.isCompleted)
+        self._startPosition = startPosition
+        self.onTaskCompleted = onTaskCompleted
     }
     
     var body: some View {
-            ZStack(alignment: .bottomTrailing) {
-                HStack {
-                    //Circle with the number of fishes available
-                    VStack {
-                        ZStack {
-                            Circle()
-                                .fill(Color.black)
-                                .frame(width: 70, height: 70)
-                                
-                            VStack {
-                                Text("\(task.numberOfFishes)")
-                                    .font(.title)
-                                    .foregroundColor(.white)
-                                    .padding(.top, 10)
-                                Text("Fishes")
-                                    .font(.caption)
-                                    .foregroundColor(.white)
-                                    .padding(.bottom, 15)
-                            }
-                            .padding(10)
-                            
-                        }
-                    }
-                    .padding(.leading, 10)
-                    .padding(.trailing, 10)
-
-                    // Task details
-                    VStack(alignment: .leading) {
-                        Text("Cleaning")
-                            .font(.footnote)
-                            .padding(.top, 10)
-
-                        Text(task.title)
-                            .font(.headline)
+        ZStack(alignment: .bottomTrailing) {
+            HStack {
+                //Circle with the number of fishes available
+                VStack {
+                    ZStack {
+                        Circle()
+                            .fill(Color.black)
+                            .frame(width: 70, height: 70)
+                            .overlay(
+                                GeometryReader { geo in
+                                    Color.clear
+                                        .onAppear {
+                                            DispatchQueue.main.async {
+                                                let position = CGPoint(x: geo.frame(in: .global).midX, y: geo.frame(in: .global).midY)
+                                                print("Start Position: \(position)")
+                                                self.startPosition = position
+                                            }
+                                        }
+                                }
+                            )
                         
-                        //Print formatted due dates
-                        //Not really needed, so we hide it until further
-//                        if let dueDates = task.dueDates {
-//                            ForEach(dueDates, id: \.self) { date in
-//                                Text(formatDueDate(date: date))
-//                                    .font(.subheadline)
-//                                    .foregroundColor(.gray)
-//                            }
-//                        }
-                        //
-                        Spacer()
+                        
+                        VStack {
+                            Text("\(task.numberOfFishes)")
+                                .font(.title)
+                                .foregroundColor(.white)
+                                .padding(.top, 10)
+                            Text("Fishes")
+                                .font(.caption)
+                                .foregroundColor(.white)
+                                .padding(.bottom, 15)
+                        }
+                        .padding(10)
+                        
                     }
-                   
+                }
+                .padding(.leading, 10)
+                .padding(.trailing, 10)
+                
+                // Task details
+                VStack(alignment: .leading) {
+                    Text("Cleaning")
+                        .font(.footnote)
+                        .padding(.top, 10)
+                    
+                    Text(task.title)
+                        .font(.headline)
                     
                     Spacer()
                 }
-                .contentShape(Rectangle()) // Make the entire HStack tappable
-                .onTapGesture {
-                // Handle tap on the whole card here if needed
-                    withAnimation {
-                        taskVM.selectedTask = task
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color.gray, lineWidth: 1)
-                )
-                .padding(.horizontal)
-                .padding(.bottom)
-
-                // "Not Done" button
-                Button(action: {
-                    withAnimation {
-                        toggleTaskCompletion()
-                    }
-                }) {
-                    Text(isCompleted ? "Done" : "Not Done")
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 10)
-                        .background(isCompleted ? Color.gray.opacity(0.8) : Color.gray.opacity(0.2))
-                        .cornerRadius(10)
-                        .foregroundColor(isCompleted ? .white : .primary)
-                }
-                .padding([.trailing, .bottom], 20)
-                .background(Color.clear) //Ensure the button has a tappable area
-                .zIndex(1) // Ensure button is on top
-                .padding(10)
+                
+                
+                Spacer()
             }
+            .contentShape(Rectangle()) // Make the entire HStack tappable
+            .onTapGesture {
+                // Handle tap on the whole card here if needed
+                withAnimation {
+                    taskVM.selectedTask = task
+                }
+            }
+            .frame(maxWidth: .infinity)
+            .background(
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(Color.gray, lineWidth: 1)
+            )
+            .padding(.horizontal)
+            .padding(.bottom)
+            
+            // "Not Done" button
+            Button(action: {
+                onTaskCompleted()
+                withAnimation {
+                    toggleTaskCompletion()
+                }
+            }) {
+                Text(isCompleted ? "Done" : "Not Done")
+                    .padding(.horizontal, 10)
+                    .padding(.vertical, 10)
+                    .background(isCompleted ? Color.gray.opacity(0.8) : Color.gray.opacity(0.2))
+                    .cornerRadius(10)
+                    .foregroundColor(isCompleted ? .white : .primary)
+            }
+            .padding([.trailing, .bottom], 20)
+            .background(Color.clear) //Ensure the button has a tappable area
+            .zIndex(1) // Ensure button is on top
+            .padding(10)
+            
+            
         }
+    }
     
     // Format date in this struct directly
     func formatDueDate(date: Date) -> String {

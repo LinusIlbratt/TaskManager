@@ -94,7 +94,7 @@ class UserViewModel: ObservableObject {
                 completion(false)
             } else if let result = result {
                 
-                self.addUser(user: (User(id: result.user.uid, email: email, displayName: displayName)))
+                self.addUser(user: (User(id: result.user.uid, email: email, displayName: displayName,  totalAmountOfFishesCollected: 0)))
                 completion(true)
                 
             } else {
