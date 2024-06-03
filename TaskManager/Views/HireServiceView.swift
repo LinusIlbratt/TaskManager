@@ -46,7 +46,7 @@ struct HireServiceView: View {
                 }
                 
                 Button(action: {
-                    // Handle the booking submission here
+                    // Handle the booking here
                     submitBooking()
                     clearTextFields()
                 }) {
@@ -85,7 +85,7 @@ struct HireServiceView: View {
     }
     
     func submitBooking() {
-        // Implement the booking submission logic here
+        // Implement the booking logic here
         print("Booking submitted")
         // Send booking details to the cleaning company
         
