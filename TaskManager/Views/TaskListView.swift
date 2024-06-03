@@ -54,6 +54,7 @@ struct TaskListView: View {
                             
                             //List of to-dos
                             ScrollView {
+                                //LazyVStack instead of List to allow for scrollview
                                 LazyVStack {
                                     ForEach(filteredTasks) { task in
                                         // Card for each task
