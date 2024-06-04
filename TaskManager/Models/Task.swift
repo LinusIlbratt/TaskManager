@@ -21,4 +21,5 @@ struct Task: Identifiable, Codable, Equatable {
     var familyId: String?
     var taskColor: String?
     var numberOfFishes : Int
+    var completedDates: [Date]? //new property to track completed dates
 }

@@ -16,13 +16,15 @@ struct TaskCardView: View {
     @State private var isCompleted: Bool
     @Binding var startPosition: CGPoint
     var onTaskCompleted: () -> Void // Callback to notify when task is completed
+    @Binding var selectedDate: Date?
     
-    init(task: Task, taskVM: TaskViewModel, startPosition: Binding<CGPoint>, onTaskCompleted: @escaping () -> Void) {
+    init(task: Task, taskVM: TaskViewModel, startPosition: Binding<CGPoint>, onTaskCompleted: @escaping () -> Void, selectedDate: Binding<Date?>) {
         self.task = task
         self.taskVM = taskVM
         self._isCompleted = State(initialValue: task.isCompleted)
         self._startPosition = startPosition
         self.onTaskCompleted = onTaskCompleted
+        self._selectedDate = selectedDate
     }
     
     var body: some View {
@@ -40,7 +42,6 @@ struct TaskCardView: View {
                                         .onAppear {
                                             DispatchQueue.main.async {
                                                 let position = CGPoint(x: geo.frame(in: .global).midX, y: geo.frame(in: .global).midY)
-                                                print("Start Position: \(position)")
                                                 self.startPosition = position
                                             }
                                         }
@@ -80,9 +81,9 @@ struct TaskCardView: View {
                 
                 Spacer()
             }
-            .contentShape(Rectangle()) // Make the entire HStack tappable
+            .contentShape(Rectangle()) //Make the entire HStack tappable
             .onTapGesture {
-                // Handle tap on the whole card here if needed
+                //Handle tap on the whole card here if needed
                 withAnimation {
                     taskVM.selectedTask = task
                 }
@@ -118,18 +119,26 @@ struct TaskCardView: View {
         }
     }
     
-    // Format date in this struct directly
+    //Format date in this struct directly
     func formatDueDate(date: Date) -> String {
         let formatter = DateFormatter()
         formatter.dateFormat = "dd/MM/yy"
         return "Due \(formatter.string(from: date))"
     }
     
-    // Toggle task completion status and update in ViewModel
+    //Toggle task completion status and update in ViewModel
     private func toggleTaskCompletion() {
+        
+        //We eiter use current day which is most correct?
+        let today = Calendar.current.startOfDay(for: Date())
+        //But selected date will help remove the task from the list in the future when displayed..
+        guard let selectedDate = selectedDate else { return }
+        
         if let taskId = task.id {
-            isCompleted.toggle()
-            taskVM.updateTaskCompletion(taskId: taskId, isCompleted: isCompleted)
+            let isTaskCompletedOnSelectedDate = task.completedDates?.contains { Calendar.current.isDate($0, inSameDayAs: selectedDate) } ?? false
+            
+            taskVM.updateTaskCompletion(taskId: taskId, for: selectedDate, isCompleted: !isTaskCompletedOnSelectedDate)
+            onTaskCompleted()
         }
     }
 }

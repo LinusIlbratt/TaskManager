@@ -85,7 +85,8 @@ class TaskViewModel: ObservableObject {
             createdAt: Date(),
             familyId: familyId.isEmpty ? nil : familyId,
             taskColor: taskColor.isEmpty ? nil : taskColor,
-            numberOfFishes: numberOfFishes
+            numberOfFishes: numberOfFishes,
+            completedDates: []
         )
         
         do {
@@ -102,6 +103,8 @@ class TaskViewModel: ObservableObject {
         familyId = ""
         taskColor = ""
         numberOfFishes = 0
+        
+        
     }
     
     func updateTaskDueDates(task: Task, dueDates: [Date]) {
@@ -142,17 +145,46 @@ class TaskViewModel: ObservableObject {
         }
     }
 
-    func updateTaskCompletion(taskId: String, isCompleted: Bool) {
+    func updateTaskCompletion(taskId: String, for date: Date, isCompleted: Bool) {
         if let index = allTasksForThisUser.firstIndex(where: { $0.id == taskId }) {
-            allTasksForThisUser[index].isCompleted = isCompleted
+            var task = allTasksForThisUser[index]
             
-            let task = allTasksForThisUser[index]
+            let calendar = Calendar.current
+            
+            //initilze completedDates in case of nil
+            if task.completedDates == nil {
+                task.completedDates = []
+            }
+            
+            if isCompleted {
+                //add dates to array list
+                if !task.completedDates!.contains(where: { calendar.isDate($0, inSameDayAs: date) }) {
+                    task.completedDates!.append(date)
+                    print("Date \(date) added to completedDates for task \(task.title)")
+                }
+            } else {
+                //In case of undo, remove dates from array list
+                task.completedDates!.removeAll(where: { calendar.isDate($0, inSameDayAs: date) })
+                print("Date \(date) removed from completedDates for task \(task.title)")
+            }
+            
+            //Update
+            if let dueDates = task.dueDates {
+                let allDatesCompleted = dueDates.allSatisfy { dueDate in
+                    task.completedDates!.contains(where: { calendar.isDate($0, inSameDayAs: dueDate) })
+                }
+                task.isCompleted = allDatesCompleted
+            } else {
+                task.isCompleted = false
+            }
+            
+            allTasksForThisUser[index] = task
             
             //Guard userId
             guard let userId = auth.currentUser?.uid else { return }
             
             //Update task in Firebase
-            let taskUpdate = firebaseService.updateTaskInDatabase(taskId: taskId, isCompleted: isCompleted)
+            let taskUpdate = firebaseService.updateTaskInDatabase(taskId: taskId, isCompleted: task.isCompleted, completedDates: task.completedDates!)
             
             //Update user's totalAmountOfFishesCollected based on task completion status
             let numberOfFishes = task.numberOfFishes
@@ -160,10 +192,10 @@ class TaskViewModel: ObservableObject {
             //combine publishers
             let cancellable = taskUpdate
                 .handleEvents(receiveOutput: { _ in
-                   //Task update completed
+                    //Task update completed
                 })
                 .flatMap { _ -> AnyPublisher<Void, Never> in
-                   //Proceeding to user update, include number of fishes
+                    //Proceeding to user update, include number of fishes
                     return self.updateUserFishesCollected(userId: userId, numberOfFishes: numberOfFishes, isCompleted: isCompleted)
                 }
                 .sink(receiveCompletion: { completion in

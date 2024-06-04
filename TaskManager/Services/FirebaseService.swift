@@ -63,7 +63,7 @@ class FirebaseService: ObservableObject {
         }
     }
     
-    // Function to fetch tasks assigned to a specific user
+    //Function to fetch tasks assigned to a specific user
     func fetchTasks(assignedTo userId: String) {
         db.collection("tasks")
             .whereField("assignedTo", arrayContains: userId)
@@ -92,13 +92,17 @@ class FirebaseService: ObservableObject {
     }
     
     
-    // Function to update task completion status
-    func updateTaskInDatabase(taskId: String, isCompleted: Bool) -> Future<Void, Never> {
-        print("Starting updateTaskInDatabase with taskId: \(taskId) and isCompleted: \(isCompleted)")
+    //Function to update task completion status
+    func updateTaskInDatabase(taskId: String, isCompleted: Bool, completedDates: [Date]) -> Future<Void, Never> {
+        
         return Future { promise in
             let taskRef = self.db.collection("tasks").document(taskId)
             
-            taskRef.updateData(["isCompleted": isCompleted]) { error in
+            //Convert date to timestamp format for firebase
+            let timestamps = completedDates.map { Timestamp(date: $0) }
+            
+            //update document
+            taskRef.updateData(["isCompleted": isCompleted, "completedDates": timestamps]) { error in
                 if let error = error {
                     print("Error updating task: \(error)")
                 } else {
@@ -108,7 +112,7 @@ class FirebaseService: ObservableObject {
             }
         }
     }
-
+ 
     func updateTaskAssignedTo(task: Task, assignedTo: [String]) {
         guard let taskId = task.id else {
             print("Task ID not found")

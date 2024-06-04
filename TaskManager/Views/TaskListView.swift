@@ -48,7 +48,7 @@ struct TaskListView: View {
                         Divider()
                         
                         VStack(alignment: .leading) {
-                            Text("Today's tasks")
+                            Text("Tasks for x")
                                 .padding(.top)
                                 .padding(.leading)
                             
@@ -68,7 +68,8 @@ struct TaskListView: View {
                                                 withAnimation {
                                                     self.animationTrigger = true
                                                 }
-                                            }
+                                            },
+                                            selectedDate: $selectedDate
                                         )
                                         .padding(.vertical, 5)
                                         .background(Color.clear)
@@ -127,7 +128,6 @@ struct TaskListView: View {
         }
         .onAppear {
             //Update ViewModel selectedDate to trigger filtering (when app launches)
-            taskVM.selectedDate = selectedDate
             taskVM.fetchUserTasks()
         }
         .background(
@@ -138,7 +138,6 @@ struct TaskListView: View {
                             // Set end position to the bottom right corner
                             let screenBounds = UIScreen.main.bounds
                             self.endPosition = CGPoint(x: screenBounds.maxX - 10, y: screenBounds.maxY - 30)
-//                            print("End Position: \(self.endPosition)") // Debugging line to check end position
                         }
                     }
             }
@@ -148,20 +147,42 @@ struct TaskListView: View {
     
     //Filter task list based on selected date and filter in calendar view
     var filteredTasks: [Task] {
+        guard let selectedDate = selectedDate else {
+            
+            //no date is selcted for some reason..
+            return []
+        }
+
+        //filter on selected date
         let tasksForSelectedDate = taskVM.allTasksForThisUser.filter { task in
             if let dueDates = task.dueDates {
                 return dueDates.contains { dueDate in
-                    Calendar.current.isDate(dueDate, inSameDayAs: selectedDate ?? Date())
+                    Calendar.current.isDate(dueDate, inSameDayAs: selectedDate)
                 }
             }
             return false
         }
-        //Continue to filter based on isCompleted
+        
+        //continue filter based on completed status (completedDates) and selected date
         switch taskVM.ourFilter {
+            
+        //case upcoming
         case .upcoming:
-            return tasksForSelectedDate.filter { !$0.isCompleted }
+            let upcomingTasks = tasksForSelectedDate.filter { task in
+                !(task.completedDates?.contains { completedDate in
+                    Calendar.current.isDate(completedDate, inSameDayAs: selectedDate)
+                } ?? false)
+            }
+            return upcomingTasks
+            
+        //case completed
         case .completed:
-            return tasksForSelectedDate.filter { $0.isCompleted }
+            let completedTasks = tasksForSelectedDate.filter { task in
+                task.completedDates?.contains { completedDate in
+                    Calendar.current.isDate(completedDate, inSameDayAs: selectedDate)
+                } ?? false
+            }
+            return completedTasks
         }
     }
 }
