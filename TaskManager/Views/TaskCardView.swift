@@ -88,7 +88,7 @@ struct TaskCardView: View {
                     taskVM.selectedTask = task
                 }
             }
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, minHeight: 130)
             .background(
                 RoundedRectangle(cornerRadius: 10)
                     .stroke(Color.gray, lineWidth: 1)
@@ -103,7 +103,7 @@ struct TaskCardView: View {
                     toggleTaskCompletion()
                 }
             }) {
-                Text(isCompleted ? "Done" : "Not Done")
+                Text(isCompleted ? "Done" : "Mark as Done")
                     .padding(.horizontal, 10)
                     .padding(.vertical, 10)
                     .background(isCompleted ? Color.gray.opacity(0.8) : Color.gray.opacity(0.2))
@@ -130,7 +130,7 @@ struct TaskCardView: View {
     private func toggleTaskCompletion() {
         
         //We eiter use current day which is most correct?
-        let today = Calendar.current.startOfDay(for: Date())
+//        let today = Calendar.current.startOfDay(for: Date())
         //But selected date will help remove the task from the list in the future when displayed..
         guard let selectedDate = selectedDate else { return }
         
