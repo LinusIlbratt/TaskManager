@@ -151,51 +151,49 @@ class TaskViewModel: ObservableObject {
             
             let calendar = Calendar.current
             
-            //initilze completedDates in case of nil
-            if task.completedDates == nil {
-                task.completedDates = []
-            }
+            //initialize completedDates in case of nil
+            var completedDates = task.completedDates ?? []
             
             if isCompleted {
-                //add dates to array list
-                if !task.completedDates!.contains(where: { calendar.isDate($0, inSameDayAs: date) }) {
-                    task.completedDates!.append(date)
-                    print("Date \(date) added to completedDates for task \(task.title)")
+                //add date to array list
+                if !completedDates.contains(where: { calendar.isDate($0, inSameDayAs: date) }) {
+                    completedDates.append(date)
                 }
             } else {
-                //In case of undo, remove dates from array list
-                task.completedDates!.removeAll(where: { calendar.isDate($0, inSameDayAs: date) })
-                print("Date \(date) removed from completedDates for task \(task.title)")
+                //in case of undo, remove date from array list
+                completedDates.removeAll(where: { calendar.isDate($0, inSameDayAs: date) })
             }
             
-            //Update
+            //update task completion status based on dueDates
             if let dueDates = task.dueDates {
                 let allDatesCompleted = dueDates.allSatisfy { dueDate in
-                    task.completedDates!.contains(where: { calendar.isDate($0, inSameDayAs: dueDate) })
+                    completedDates.contains(where: { calendar.isDate($0, inSameDayAs: dueDate) })
                 }
                 task.isCompleted = allDatesCompleted
             } else {
                 task.isCompleted = false
             }
             
+            //update the task object
+            task.completedDates = completedDates
             allTasksForThisUser[index] = task
             
-            //Guard userId
+            //guard userId
             guard let userId = auth.currentUser?.uid else { return }
             
-            //Update task in Firebase
-            let taskUpdate = firebaseService.updateTaskInDatabase(taskId: taskId, isCompleted: task.isCompleted, completedDates: task.completedDates!)
+            //update task in Firebase
+            let taskUpdate = firebaseService.updateTaskInDatabase(taskId: taskId, isCompleted: task.isCompleted, completedDates: completedDates)
             
-            //Update user's totalAmountOfFishesCollected based on task completion status
+            //update user totalAmountOfFishesCollected based on task completion status
             let numberOfFishes = task.numberOfFishes
             
             //combine publishers
             let cancellable = taskUpdate
                 .handleEvents(receiveOutput: { _ in
-                    //Task update completed
+                    //task update completed
                 })
                 .flatMap { _ -> AnyPublisher<Void, Never> in
-                    //Proceeding to user update, include number of fishes
+                    //proceeding to user update, include number of fishes
                     return self.updateUserFishesCollected(userId: userId, numberOfFishes: numberOfFishes, isCompleted: isCompleted)
                 }
                 .sink(receiveCompletion: { completion in
@@ -207,7 +205,7 @@ class TaskViewModel: ObservableObject {
                     }
                 }, receiveValue: { _ in })
             
-            //Store the cancellable
+            //store the cancellable
             self.cancellables.insert(cancellable)
         } else {
             print("Task not found")
