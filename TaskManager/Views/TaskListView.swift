@@ -22,6 +22,15 @@ struct TaskListView: View {
     @State private var fishCount = 0
     @State private var animationTrigger = false
     
+    //create a DateFormatter
+    //perhaps move this to dateformatter class?
+    private var dateFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        return formatter
+    }
+    
     var body: some View {
         ZStack {
             
@@ -48,7 +57,7 @@ struct TaskListView: View {
                         Divider()
                         
                         VStack(alignment: .leading) {
-                            Text("Tasks for x")
+                            Text("Tasks for \(selectedDate.map { dateFormatter.string(from: $0) } ?? "selected date")")
                                 .padding(.top)
                                 .padding(.leading)
                             
