@@ -63,12 +63,15 @@ struct TaskListView: View {
                                             taskVM: taskVM,
                                             startPosition: $startPosition,
                                             onTaskCompleted: {
-                                                self.fishCount = task.numberOfFishes
-                                                self.showFish = true
-                                                withAnimation {
-                                                    self.animationTrigger = true
-                                                }
-                                            },
+                                                //show animation only on upcoming tasks
+                                                    if taskVM.ourFilter == .upcoming {
+                                                        self.fishCount = task.numberOfFishes
+                                                        self.showFish = true
+                                                        withAnimation {
+                                                            self.animationTrigger = true
+                                                        }
+                                                    }
+                                                },
                                             selectedDate: $selectedDate
                                         )
                                         .padding(.vertical, 5)
