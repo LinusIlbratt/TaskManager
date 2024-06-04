@@ -93,7 +93,7 @@ struct CalendarView: View {
         }
         //when the view is shown, lets setup the current week to be displayed
         .onAppear(perform: setupWeek)
-        .onChange(of: taskListAvailable) { _ in
+        .onChange(of: taskListAvailable) {
                     setupWeek()
         }
     }
@@ -126,7 +126,7 @@ struct CalendarView: View {
                 }.count
                 
 
-                weekDays.append(CalendarDay(day: day, weekday: weekdaySymbol, isToday: isToday, hasEvents: taskCount)) // Use a fixed number for hasEvents
+                weekDays.append(CalendarDay(day: day, weekday: weekdaySymbol, isToday: isToday, hasEvents: taskCount))
             }
         }
         self.days = weekDays
