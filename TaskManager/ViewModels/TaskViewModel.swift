@@ -25,6 +25,7 @@ class TaskViewModel: ObservableObject {
     @Published var familyId: String = ""
     @Published var taskColor: String = ""
     @Published var numberOfFishes: Int = 0
+    @Published var isLoading: Bool = false
     
     let calendar = Calendar.current
     let today = Date()
@@ -54,15 +55,23 @@ class TaskViewModel: ObservableObject {
     }
     
     func fetchTasks() {
+        
+        isLoading = true
+        
         db.collection("tasks").addSnapshotListener { (querySnapshot, error) in
             guard let documents = querySnapshot?.documents else {
                 print("No documents")
+                
+                self.isLoading = false
+                
                 return
             }
             
             self.tasks = documents.compactMap { queryDocumentSnapshot -> Task? in
                 return try? queryDocumentSnapshot.data(as: Task.self)
             }
+            
+            self.isLoading = false
         }
     }
     
@@ -76,7 +85,8 @@ class TaskViewModel: ObservableObject {
             createdAt: Date(),
             familyId: familyId.isEmpty ? nil : familyId,
             taskColor: taskColor.isEmpty ? nil : taskColor,
-            numberOfFishes: numberOfFishes
+            numberOfFishes: numberOfFishes,
+            completedDates: []
         )
         
         do {
@@ -93,6 +103,8 @@ class TaskViewModel: ObservableObject {
         familyId = ""
         taskColor = ""
         numberOfFishes = 0
+        
+        
     }
     
     func updateTaskDueDates(task: Task, dueDates: [Date]) {
@@ -108,11 +120,14 @@ class TaskViewModel: ObservableObject {
             .receive(on: DispatchQueue.main)
             .sink { [weak self] tasks in
                 self?.allTasksForThisUser = tasks
+                self?.isLoading = false
             }
             .store(in: &cancellables)
+        
     }
     
     func fetchUserTasks() {
+        isLoading = true
             guard let user = auth.currentUser else { return }
             firebaseService.fetchTasks(assignedTo: user.uid)
         }
@@ -130,28 +145,55 @@ class TaskViewModel: ObservableObject {
         }
     }
 
-    func updateTaskCompletion(taskId: String, isCompleted: Bool) {
+    func updateTaskCompletion(taskId: String, for date: Date, isCompleted: Bool) {
         if let index = allTasksForThisUser.firstIndex(where: { $0.id == taskId }) {
-            allTasksForThisUser[index].isCompleted = isCompleted
+            var task = allTasksForThisUser[index]
             
-            let task = allTasksForThisUser[index]
+            let calendar = Calendar.current
             
-            //Guard userId
+            //initialize completedDates in case of nil
+            var completedDates = task.completedDates ?? []
+            
+            if isCompleted {
+                //add date to array list
+                if !completedDates.contains(where: { calendar.isDate($0, inSameDayAs: date) }) {
+                    completedDates.append(date)
+                }
+            } else {
+                //in case of undo, remove date from array list
+                completedDates.removeAll(where: { calendar.isDate($0, inSameDayAs: date) })
+            }
+            
+            //update task completion status based on dueDates
+            if let dueDates = task.dueDates {
+                let allDatesCompleted = dueDates.allSatisfy { dueDate in
+                    completedDates.contains(where: { calendar.isDate($0, inSameDayAs: dueDate) })
+                }
+                task.isCompleted = allDatesCompleted
+            } else {
+                task.isCompleted = false
+            }
+            
+            //update the task object
+            task.completedDates = completedDates
+            allTasksForThisUser[index] = task
+            
+            //guard userId
             guard let userId = auth.currentUser?.uid else { return }
             
-            //Update task in Firebase
-            let taskUpdate = firebaseService.updateTaskInDatabase(taskId: taskId, isCompleted: isCompleted)
+            //update task in Firebase
+            let taskUpdate = firebaseService.updateTaskInDatabase(taskId: taskId, isCompleted: task.isCompleted, completedDates: completedDates)
             
-            //Update user's totalAmountOfFishesCollected based on task completion status
+            //update user totalAmountOfFishesCollected based on task completion status
             let numberOfFishes = task.numberOfFishes
             
             //combine publishers
             let cancellable = taskUpdate
                 .handleEvents(receiveOutput: { _ in
-                   //Task update completed
+                    //task update completed
                 })
                 .flatMap { _ -> AnyPublisher<Void, Never> in
-                   //Proceeding to user update, include number of fishes
+                    //proceeding to user update, include number of fishes
                     return self.updateUserFishesCollected(userId: userId, numberOfFishes: numberOfFishes, isCompleted: isCompleted)
                 }
                 .sink(receiveCompletion: { completion in
@@ -163,7 +205,7 @@ class TaskViewModel: ObservableObject {
                     }
                 }, receiveValue: { _ in })
             
-            //Store the cancellable
+            //store the cancellable
             self.cancellables.insert(cancellable)
         } else {
             print("Task not found")

@@ -22,50 +22,79 @@ struct TaskListView: View {
     @State private var fishCount = 0
     @State private var animationTrigger = false
     
+    //create a DateFormatter
+    //perhaps move this to dateformatter class?
+    private var dateFormatter: DateFormatter {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        return formatter
+    }
+    
     var body: some View {
         ZStack {
+            
             VStack {
                 //Include topbar
                 TopBar()
-                //Include filter
-                FilterButtonView(selectedFilter: $taskVM.ourFilter)
-                    .padding(.top)
                 
-                //Include calendarView
-                CalendarView(selectedDate: $selectedDate)
-                
-                Spacer()
-                Divider()
-                
-                VStack(alignment: .leading) {
-                    Text("Today's tasks")
+                //Include scrollview to allow scroll everything (especially important in landscape mode)
+                ScrollView {
+                    //Include filter
+                    FilterButtonView(selectedFilter: $taskVM.ourFilter)
                         .padding(.top)
-                        .padding(.leading)
                     
-                    // List of to-dos
-                    List {
-                        ForEach(filteredTasks) { task in
-                            // Card for each task
-                            TaskCardView(
-                                task: task,
-                                taskVM: taskVM,
-                                startPosition: $startPosition,
-                                onTaskCompleted: {
-                                    self.fishCount = task.numberOfFishes
-                                    self.showFish = true
-                                    withAnimation {
-                                        self.animationTrigger = true
+                    
+                    // Check if tasks are loaded
+                    if taskVM.isLoading {
+                        ProgressView("Loading tasks...")
+                            .padding()
+                    } else {
+                        //Include calendarView
+                        CalendarView(selectedDate: $selectedDate, taskListAvailable: $taskVM.allTasksForThisUser)
+                        
+                        Spacer()
+                        Divider()
+                        
+                        VStack(alignment: .leading) {
+                            Text("Tasks for \(selectedDate.map { dateFormatter.string(from: $0) } ?? "selected date")")
+                                .padding(.top)
+                                .padding(.leading)
+                            
+                            //List of to-dos
+                            ScrollView {
+                                //LazyVStack instead of List to allow for scrollview
+                                LazyVStack {
+                                    ForEach(filteredTasks) { task in
+                                        // Card for each task
+                                        TaskCardView(
+                                            task: task,
+                                            taskVM: taskVM,
+                                            startPosition: $startPosition,
+                                            onTaskCompleted: {
+                                                //show animation only on upcoming tasks
+                                                    if taskVM.ourFilter == .upcoming {
+                                                        self.fishCount = task.numberOfFishes
+                                                        self.showFish = true
+                                                        withAnimation {
+                                                            self.animationTrigger = true
+                                                        }
+                                                    }
+                                                },
+                                            selectedDate: $selectedDate
+                                        )
+                                        .padding(.vertical, 5)
+                                        .background(Color.clear)
                                     }
                                 }
-                            )
-                            .listRowSeparator(.hidden)
-                            .listRowBackground(Color.clear)
+                            }
                         }
+                        .padding(.horizontal)
                     }
-                    .listStyle(PlainListStyle())
                 }
             }
             .blur(radius: taskVM.selectedTask != nil ? 5 : 0)
+            
             
             if let task = taskVM.selectedTask {
                 ZStack {
@@ -111,40 +140,61 @@ struct TaskListView: View {
         }
         .onAppear {
             //Update ViewModel selectedDate to trigger filtering (when app launches)
-            taskVM.selectedDate = selectedDate
             taskVM.fetchUserTasks()
         }
         .background(
-                    GeometryReader { geo in
-                        Color.clear
-                            .onAppear {
-                                DispatchQueue.main.async {
-                                    // Set end position to the bottom right corner
-                                    let screenBounds = UIScreen.main.bounds
-                                    self.endPosition = CGPoint(x: screenBounds.maxX - 10, y: screenBounds.maxY - 30)
-                                    print("End Position: \(self.endPosition)") // Debugging line to check end position
-                                }
-                            }
+            GeometryReader { geo in
+                Color.clear
+                    .onAppear {
+                        DispatchQueue.main.async {
+                            // Set end position to the bottom right corner
+                            let screenBounds = UIScreen.main.bounds
+                            self.endPosition = CGPoint(x: screenBounds.maxX - 10, y: screenBounds.maxY - 30)
+                        }
                     }
-                )
+            }
+        )
+        
     }
     
     //Filter task list based on selected date and filter in calendar view
     var filteredTasks: [Task] {
+        guard let selectedDate = selectedDate else {
+            
+            //no date is selcted for some reason..
+            return []
+        }
+
+        //filter on selected date
         let tasksForSelectedDate = taskVM.allTasksForThisUser.filter { task in
             if let dueDates = task.dueDates {
                 return dueDates.contains { dueDate in
-                    Calendar.current.isDate(dueDate, inSameDayAs: selectedDate ?? Date())
+                    Calendar.current.isDate(dueDate, inSameDayAs: selectedDate)
                 }
             }
             return false
         }
-        //Continue to filter based on isCompleted
+        
+        //continue filter based on completed status (completedDates) and selected date
         switch taskVM.ourFilter {
+            
+        //case upcoming
         case .upcoming:
-            return tasksForSelectedDate.filter { !$0.isCompleted }
+            let upcomingTasks = tasksForSelectedDate.filter { task in
+                !(task.completedDates?.contains { completedDate in
+                    Calendar.current.isDate(completedDate, inSameDayAs: selectedDate)
+                } ?? false)
+            }
+            return upcomingTasks
+            
+        //case completed
         case .completed:
-            return tasksForSelectedDate.filter { $0.isCompleted }
+            let completedTasks = tasksForSelectedDate.filter { task in
+                task.completedDates?.contains { completedDate in
+                    Calendar.current.isDate(completedDate, inSameDayAs: selectedDate)
+                } ?? false
+            }
+            return completedTasks
         }
     }
 }

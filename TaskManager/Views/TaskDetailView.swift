@@ -11,9 +11,9 @@ struct TaskDetailView: View {
     var task: Task
 
     var body: some View {
-        VStack {
-            VStack(spacing: 20) {
-                HStack {
+        VStack(alignment: .leading) {
+            VStack(alignment: .leading, spacing: 20) {
+                HStack (alignment: .firstTextBaseline) {
                     Text("Task Details")
                         .font(.headline)
                         .padding(.top)

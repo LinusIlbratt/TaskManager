@@ -8,7 +8,7 @@
 import Foundation
 import FirebaseFirestoreSwift
 
-struct Task: Identifiable, Codable {
+struct Task: Identifiable, Codable, Equatable {
     @DocumentID var id: String?
     var title: String
     var description: String
@@ -21,4 +21,5 @@ struct Task: Identifiable, Codable {
     var familyId: String?
     var taskColor: String?
     var numberOfFishes : Int
+    var completedDates: [Date]? //new property to track completed dates
 }

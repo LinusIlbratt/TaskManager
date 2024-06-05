@@ -39,7 +39,7 @@ class UserViewModel: ObservableObject {
         
         let userRef = db.collection("users").document(userID)
         userRef.getDocument { document, error in
-            if let error = error {
+            if error != nil {
                 print("error get user from firebase")
                 return
             }
@@ -56,7 +56,7 @@ class UserViewModel: ObservableObject {
                     userGroups.append(groupID)
                     userData["groups"] = userGroups
                     userRef.setData(userData) { error in
-                        if let error = error {
+                        if error != nil {
                             print("errpr adding group")
                         } else {
                             print("group added")
@@ -68,7 +68,7 @@ class UserViewModel: ObservableObject {
             } else {
                 userData["groups"] = [groupID]
                 userRef.setData(userData) { error in
-                    if let error = error {
+                    if error != nil {
                         print("error updating user with group")
                     } else {
                         print("group added to user")
