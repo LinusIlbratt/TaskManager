@@ -112,7 +112,7 @@ class FirebaseService: ObservableObject {
             }
         }
     }
- 
+    
     func updateTaskAssignedTo(task: Task, assignedTo: [String]) {
         guard let taskId = task.id else {
             print("Task ID not found")
@@ -152,49 +152,49 @@ class FirebaseService: ObservableObject {
         selectedTask?.dueDates = dates
     }
     
+    //get user by Id, return User object
     func getUserById(userId: String) -> Future<User?, Never> {
-            return Future { promise in
-                let userRef = self.db.collection("users").document(userId)
-                
-                userRef.getDocument { (document, error) in
-                    if let document = document, document.exists {
-                        do {
-                            let user = try document.data(as: User.self)
-                            promise(.success(user))
-                        } catch {
-                            print("Error decoding user: \(error)")
-                            promise(.success(nil))
-                        }
-                    } else {
-                        print("User does not exist")
+        return Future { promise in
+            let userRef = self.db.collection("users").document(userId)
+            
+            userRef.getDocument { (document, error) in
+                if let document = document, document.exists {
+                    do {
+                        let user = try document.data(as: User.self)
+                        promise(.success(user))
+                    } catch {
+                        print("Error decoding user: \(error)")
                         promise(.success(nil))
                     }
+                } else {
+                    print("User does not exist")
+                    promise(.success(nil))
                 }
             }
         }
-        
-        func updateUserInDatabase(user: User) -> Future<Void, Never> {
-            return Future { promise in
-                guard let userId = user.id else {
-                    print("User ID is nil")
-                    promise(.success(()))
-                    return
-                }
-                
-                let userRef = self.db.collection("users").document(userId)
-                
-                do {
-                    try userRef.setData(from: user) { error in
-                        if let error = error {
-                            print("Error updating user: \(error)")
-                        }
-                        promise(.success(()))
+    }
+    
+    func updateUserInDatabase(user: User) -> Future<Void, Never> {
+        return Future { promise in
+            guard let userId = user.id else {
+                print("User ID is nil")
+                promise(.success(()))
+                return
+            }
+            
+            let userRef = self.db.collection("users").document(userId)
+            
+            do {
+                try userRef.setData(from: user) { error in
+                    if let error = error {
+                        print("Error updating user: \(error)")
                     }
-                } catch {
-                    print("Error updating user: \(error)")
                     promise(.success(()))
                 }
+            } catch {
+                print("Error updating user: \(error)")
+                promise(.success(()))
             }
         }
-
+    }
 }

@@ -16,4 +16,5 @@ struct User: Identifiable, Codable, Hashable {
     var groups: [String]?
     //initally just total amount since registered
     var totalAmountOfFishesCollected: Int
+    var userColor: String?
 }

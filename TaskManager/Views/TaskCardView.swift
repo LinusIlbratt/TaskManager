@@ -48,7 +48,6 @@ struct TaskCardView: View {
                                 }
                             )
                         
-                        
                         VStack {
                             Text("\(task.numberOfFishes)")
                                 .font(.title)
@@ -60,13 +59,12 @@ struct TaskCardView: View {
                                 .padding(.bottom, 15)
                         }
                         .padding(10)
-                        
                     }
                 }
                 .padding(.leading, 10)
                 .padding(.trailing, 10)
                 
-                // Task details
+                //task details
                 VStack(alignment: .leading) {
                     Text("Cleaning")
                         .font(.footnote)
@@ -75,15 +73,49 @@ struct TaskCardView: View {
                     Text(task.title)
                         .font(.headline)
                     
+                    //circles with first letter of display names
+                    VStack {
+                        if taskVM.users.isEmpty && taskVM.errorMessage == nil {
+                            Text("Loading users...")
+                        } else if let errorMessage = taskVM.errorMessage {
+                            Text("Error: \(errorMessage)")
+                                .foregroundColor(.red)
+                        } else {
+                            HStack {
+                                ForEach(taskVM.users) { user in
+                                    ZStack {
+                                        if let color = user.userColor {
+                                            Circle()
+                                                .fill(Color(hex: color))
+                                                .frame(width: 25, height: 25)
+                                        } else {
+                                            Circle()
+                                                .fill(Color.gray)
+                                                .frame(width: 25, height: 25)
+                                        }
+                                        Text(String(user.displayName.prefix(1)))
+                                            .foregroundColor(.white)
+                                            .font(.headline)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    .padding(.bottom, 10)
+                    .onAppear {
+                        //guard assignedTo if its empty
+                        guard let assignedTo = task.assignedTo else { return }
+                        
+                        taskVM.fetchUsersFromDatabase(with: assignedTo)
+                    }
+                    
                     Spacer()
                 }
-                
-                
                 Spacer()
             }
             .contentShape(Rectangle()) //Make the entire HStack tappable
             .onTapGesture {
-                //Handle tap on the whole card here if needed
+                //on tap on whole card
                 withAnimation {
                     taskVM.selectedTask = task
                 }
@@ -96,27 +128,30 @@ struct TaskCardView: View {
             .padding(.horizontal)
             .padding(.bottom)
             
-            // "Not Done" button
+            //"Done" button
             Button(action: {
                 onTaskCompleted()
                 withAnimation {
                     toggleTaskCompletion()
                 }
             }) {
-                Text(isCompleted ? "Done" : "Mark as Done")
+                Text(isCompletedForSelectedDate() ? "Mark as not done" : "Mark as Done")
                     .padding(.horizontal, 10)
                     .padding(.vertical, 10)
-                    .background(isCompleted ? Color.gray.opacity(0.8) : Color.gray.opacity(0.2))
+                    .background(isCompletedForSelectedDate() ? Color.gray.opacity(0.8) : Color.gray.opacity(0.2))
                     .cornerRadius(10)
-                    .foregroundColor(isCompleted ? .white : .primary)
+                    .foregroundColor(isCompletedForSelectedDate() ? .white : .primary)
             }
-            .padding([.trailing, .bottom], 20)
-            .background(Color.clear) //Ensure the button has a tappable area
+            .padding([.trailing, .bottom], 15)
+            .background(Color.clear) // Ensure the button has a tappable area
             .zIndex(1) // Ensure button is on top
             .padding(10)
-            
-            
         }
+    }
+    //Check if the task is completed for the selected date
+    private func isCompletedForSelectedDate() -> Bool {
+        guard let selectedDate = selectedDate else { return false }
+        return task.completedDates?.contains(where: { Calendar.current.isDate($0, inSameDayAs: selectedDate) }) ?? false
     }
     
     //Format date in this struct directly
@@ -126,11 +161,11 @@ struct TaskCardView: View {
         return "Due \(formatter.string(from: date))"
     }
     
-    //Toggle task completion status and update in ViewModel
+    //toggle task completion status and update in ViewModel
     private func toggleTaskCompletion() {
         
         //We eiter use current day which is most correct?
-//        let today = Calendar.current.startOfDay(for: Date())
+        // let today = Calendar.current.startOfDay(for: Date())
         //But selected date will help remove the task from the list in the future when displayed..
         guard let selectedDate = selectedDate else { return }
         

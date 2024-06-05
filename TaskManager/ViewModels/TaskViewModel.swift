@@ -27,6 +27,9 @@ class TaskViewModel: ObservableObject {
     @Published var numberOfFishes: Int = 0
     @Published var isLoading: Bool = false
     
+    @Published var users: [User] = []
+    @Published var errorMessage: String?
+    
     let calendar = Calendar.current
     let today = Date()
     
@@ -212,9 +215,6 @@ class TaskViewModel: ObservableObject {
         }
     }
 
-
-
-    
     func updateUserFishesCollected(userId: String, numberOfFishes: Int, isCompleted: Bool) -> AnyPublisher<Void, Never> {
         return Future { promise in
             let userFetch = self.firebaseService.getUserById(userId: userId)
@@ -250,8 +250,25 @@ class TaskViewModel: ObservableObject {
         .eraseToAnyPublisher()
     }
 
-
-
-
+    func fetchUsersFromDatabase(with userIds: [String]) {
+            let userFutures = userIds.map { userId in
+                firebaseService.getUserById(userId: userId)
+            }
+            
+            Publishers.MergeMany(userFutures)
+                .collect()
+                .receive(on: DispatchQueue.main)
+                .sink(receiveCompletion: { [weak self] completion in
+                    switch completion {
+                    case .finished:
+                        break
+                    case .failure(let error):
+                        self?.errorMessage = error.localizedDescription
+                    }
+                }, receiveValue: { [weak self] users in
+                    self?.users = users.compactMap { $0 }
+                })
+                .store(in: &cancellables)
+        }   
 }
 
