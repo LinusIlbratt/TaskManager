@@ -16,6 +16,8 @@ class UserViewModel: ObservableObject {
     var auth = Auth.auth()
     private var db = Firestore.firestore()
     private var firestoreServices = FirebaseService()
+    @Published var currentUser: User?
+    @Published var totalAmountOfFishesCollected: Int? = nil
     
     func addGroup(name : String, description : String) {
         let group = Groups(name: name, description: description)
@@ -129,4 +131,57 @@ class UserViewModel: ObservableObject {
             }
         }
     }
+    
+    func fetchCurrentUser() {
+            guard let userId = auth.currentUser?.uid else {
+                print("No logged in user")
+                return
+            }
+            
+            let userRef = db.collection("users").document(userId)
+            userRef.getDocument { document, error in
+                if let error = error {
+                    print("Error getting user: \(error)")
+                    return
+                }
+                
+                if let document = document, document.exists {
+                    do {
+                        self.currentUser = try document.data(as: User.self)
+                    } catch {
+                        print("Error decoding user: \(error)")
+                    }
+                } else {
+                    print("User does not exist")
+                }
+            }
+        }
+    
+    func fetchCurrentUserTotalAmountOfFishesCollected() {
+            guard let userId = auth.currentUser?.uid else {
+                print("No logged in user")
+                return
+            }
+
+            let userRef = db.collection("users").document(userId)
+            userRef.getDocument { document, error in
+                if let error = error {
+                    print("Error getting user: \(error)")
+                    return
+                }
+
+                if let document = document, document.exists {
+                    if let totalAmountOfFishesCollected = document.data()?["totalAmountOfFishesCollected"] as? Int {
+                        DispatchQueue.main.async {
+                            self.totalAmountOfFishesCollected = totalAmountOfFishesCollected
+                        }
+                    } else {
+                        print("Total amount of fishes collected not found")
+                    }
+                } else {
+                    print("User does not exist")
+                }
+            }
+        }
+
 }
