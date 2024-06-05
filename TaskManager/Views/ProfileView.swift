@@ -16,94 +16,85 @@ struct ProfileView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 20) {
-            
-            // Display the user's displayName
-            HStack {
-                Spacer()
-                VStack {
-                    Text("\(userViewModel.currentUser?.displayName ?? "")")
-                        .font(.largeTitle)
-                        .foregroundColor(.black)
-                        .padding(.horizontal, 20)
-                        .padding(.top, 5)
-                    
-                    Text("Total Mörtar")
-                        .foregroundColor(.gray)
-                        .padding(.top, 5)
-                        .font(.system(size: 24))
-                              
-                    TotalAmountOfFishesCollectedView(totalAmountOfFishesCollected: userViewModel.totalAmountOfFishesCollected)
-                }
-                Spacer()
-            }
-            
+            ProfileHeaderView(userViewModel: userViewModel)
             
             Spacer()
             
-            Button(action: {
-                //Manage family
+            ActionButton(title: "Create New Group", action: {
                 navigateToNewGroup = true
-            }) {
-                Text("Create New Group")
-                    .fontWeight(.bold)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.clear)
-                    .foregroundColor(.black)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color.black, lineWidth: 1)
-                    )
-            }
+            })
             .navigationDestination(isPresented: $navigateToNewGroup) {
                 NewGroupView(signedIn: $signedIn, groupName: "", description: "")
             }
-            .padding(.horizontal, 20)
             
-            Button(action: {
+            ActionButton(title: "Hire Service", action: {
                 navigateToHireService = true
-            }, label: {
-                Text("Hire Service")
-                    .fontWeight(.bold)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.clear)
-                    .foregroundColor(.black)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color.black, lineWidth: 1)
-                    )
             })
             .navigationDestination(isPresented: $navigateToHireService) {
                 HireServiceView()
             }
-            .padding(.horizontal, 20)
             
-            Button(action: {
-                do {
-                    try Auth.auth().signOut()
-                    signedIn = false
-                } catch let signOutError as NSError {
-                    print("Error signing out: \(signOutError)")
-                }
-            }) {
-                Text("Logout")
-                    .fontWeight(.bold)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.clear)
-                    .foregroundColor(.black)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color.black, lineWidth: 1)
-                    )
-            }
-            .padding(.horizontal, 20)
+            ActionButton(title: "Logout", action: {
+                handleLogout()
+            })
             .padding(.bottom, 40)
         }
+        .padding(.horizontal, 20)
         .onAppear {
             userViewModel.fetchCurrentUser()
             userViewModel.fetchCurrentUserTotalAmountOfFishesCollected()
+        }
+    }
+    
+    private func handleLogout() {
+        do {
+            try Auth.auth().signOut()
+            signedIn = false
+        } catch let signOutError as NSError {
+            print("Error signing out: \(signOutError)")
+        }
+    }
+}
+
+struct ProfileHeaderView: View {
+    @ObservedObject var userViewModel: UserViewModel
+
+    var body: some View {
+        HStack {
+            Spacer()
+            VStack(spacing: 5) {
+                Text("\(userViewModel.currentUser?.displayName ?? "")")
+                    .font(.largeTitle)
+                    .foregroundColor(.black)
+                
+                Text("Total Mörtar")
+                    .foregroundColor(.gray)
+                    .font(.system(size: 24))
+                
+                TotalAmountOfFishesCollectedView(totalAmountOfFishesCollected: userViewModel.totalAmountOfFishesCollected)
+            }
+            Spacer()
+        }
+        .padding(.top, 5)
+    }
+}
+
+struct ActionButton: View {
+    let title: String
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .fontWeight(.bold)
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.clear)
+                .foregroundColor(.black)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(Color.black, lineWidth: 1)
+                )
         }
     }
 }
@@ -117,7 +108,6 @@ struct TotalAmountOfFishesCollectedView: View {
                 Text("\(totalAmountOfFishesCollected)")
                     .font(.system(size: 40, weight: .bold))
                     .foregroundColor(.gray)
-                    
             } else {
                 Text("Loading...")
                     .font(.system(size: 30, weight: .bold))
@@ -126,7 +116,6 @@ struct TotalAmountOfFishesCollectedView: View {
         }
     }
 }
-
 
 struct ProfileView_Previews: PreviewProvider {
     @State static var signedIn = false
