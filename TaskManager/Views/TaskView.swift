@@ -15,8 +15,13 @@ struct TaskView: View {
     
     var body: some View {
         NavigationStack {
-            VStack {
+            VStack(spacing: 0) {
                 TopBar()
+                    .frame(maxWidth: .infinity)
+                    .background(Color.white)
+                    .shadow(radius: 5)
+                    .ignoresSafeArea(edges: .top)
+                
                 Text("Select task to schedule")
                     .font(.headline)
                     .padding()
@@ -31,7 +36,7 @@ struct TaskView: View {
                     }
                 }
                 
-                Spacer()
+                Spacer() // This will push the button to the bottom
                 
                 Button(action: {
                     showingAddTaskView = true
@@ -49,6 +54,7 @@ struct TaskView: View {
                         )
                 }
                 .padding(.horizontal, 20)
+                .padding(.bottom, 40) // This will add fixed space below the button to avoid being hidden by TabView
             }
             .navigationTitle("")
             .navigationBarHidden(true)
@@ -61,6 +67,7 @@ struct TaskView: View {
         }
     }
 }
+
 
 struct TaskCardListView: View {
     var task: Task

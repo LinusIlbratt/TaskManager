@@ -19,15 +19,18 @@ struct ScheduleTaskView: View {
     var task: Task?
     
     var body: some View {
-        ZStack {
-            VStack(spacing: 15) {
+        ZStack(alignment: .top) {
+            
+            VStack {
+                TopBar()
+                
                 HStack {
                     Text("Schedule Task")
                         .font(.headline)
                     Spacer()
                 }
                 .padding(.horizontal)
-
+                
                 // Task information
                 TaskInfoView(task: task)
                     .frame(maxWidth: .infinity)
@@ -42,7 +45,7 @@ struct ScheduleTaskView: View {
                         }
                     )
                     .padding(.horizontal, 40)
-
+                
                 // Calendar
                 VStack {
                     HStack {
@@ -82,7 +85,7 @@ struct ScheduleTaskView: View {
                     
                     let columns = Array(repeating: GridItem(.flexible()), count: 7)
                     
-                    LazyVGrid(columns: columns, spacing: 10) {
+                    LazyVGrid(columns: columns, spacing: 5) { // Adjust spacing here
                         ForEach(0..<self.firstWeekday(), id: \.self) { _ in
                             Text("")
                                 .frame(maxWidth: .infinity)
@@ -97,17 +100,17 @@ struct ScheduleTaskView: View {
                                     RoundedRectangle(cornerRadius: 8)
                                         .fill(Color.clear)
                                 }
-
+                                
                                 if self.isCurrentDate(date) {
                                     RoundedRectangle(cornerRadius: 8)
                                         .stroke(Color.blue, lineWidth: 2)
                                 }
-
+                                
                                 Text("\(self.dayString(from: date))")
                                     .foregroundColor(
                                         selectedDates.contains(date) ? .white :
-                                        self.isCurrentDate(date) ? .black :
-                                        (date < Date() ? .gray : .black)
+                                            self.isCurrentDate(date) ? .black :
+                                            (date < Date() ? .gray : .black)
                                     )
                                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                                     .padding(4)
@@ -123,18 +126,20 @@ struct ScheduleTaskView: View {
                                     }
                                     .layoutPriority(1)
                             }
-
-                            .frame(minWidth: 40, maxWidth: .infinity, minHeight: 40, maxHeight: 40)
+                            
+                            .frame(minWidth: 35, maxWidth: .infinity, minHeight: 35, maxHeight: 35) // Adjust the size here
                         }
                     }
                 }
-                .padding()
+                .padding(10) // Adjust padding here
                 .background(
                     RoundedRectangle(cornerRadius: 10)
                         .fill(Color.white)
                         .shadow(radius: 5)
                 )
                 .padding(.horizontal)
+                
+                Spacer() // This will push the button to the bottom
                 
                 // Buttons
                 VStack(spacing: 10) {
@@ -181,11 +186,11 @@ struct ScheduleTaskView: View {
                             .foregroundColor(.gray)
                     }
                     
-                    Spacer()
-
+                    Spacer().frame(height: 20) // This will add fixed space above the "Schedule Task" button
+                    
                     Button(action: {
                         if let task = task {
-                            viewModel.updateTaskDueDates(task: task, dueDates: Array(selectedDates))                           
+                            viewModel.updateTaskDueDates(task: task, dueDates: Array(selectedDates))
                             viewModel.updateTaskAssignedTo(task: task, assignedTo: selectedUsers.compactMap { $0.id })
                             dismiss()
                         }
@@ -204,6 +209,7 @@ struct ScheduleTaskView: View {
                                 }
                             )
                     }
+                    .padding(.bottom, 40) // This will add fixed space below the button to avoid being hidden by TabView
                 }
                 .padding(.horizontal, 40)
             }
@@ -215,7 +221,7 @@ struct ScheduleTaskView: View {
                     .zIndex(1)
             }
         }
-        .edgesIgnoringSafeArea(showUserList ? .all : .init())
+        .edgesIgnoringSafeArea(.top) // Ignorera säkerhetsområdena upptill
     }
 }
 
