@@ -183,14 +183,18 @@ struct AddTaskView: View {
                     presentationMode.wrappedValue.dismiss()
                 }) {
                     Text("Create")
-                        .font(.headline)
+                        .fontWeight(.bold)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.gray.opacity(0.2))
-                        .cornerRadius(10)
-                        .padding(.horizontal, 16)
+                        .background(Color.clear)
+                        .foregroundColor(.black)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 10)
+                                .stroke(Color.black, lineWidth: 1)
+                        )
                 }
                 .padding(.bottom, 20)
+                .padding(.horizontal, 20)
             }
             .background(Color(UIColor.systemGroupedBackground))
             .navigationBarTitle("", displayMode: .inline)
