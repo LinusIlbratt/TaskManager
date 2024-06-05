@@ -9,7 +9,10 @@ import SwiftUI
 
 struct TaskDetailView: View {
     var task: Task
-
+    
+    //include selectedDate do make sure to compare selecteddate with completeddates
+    @Binding var selectedDate: Date?
+    
     var body: some View {
         VStack(alignment: .leading) {
             VStack(alignment: .leading, spacing: 20) {
@@ -19,7 +22,7 @@ struct TaskDetailView: View {
                         .padding(.top)
                     Spacer()
                 }
-                    
+                
                 VStack(alignment: .leading, spacing: 10) {
                     Text("Category")
                         .font(.caption)
@@ -72,9 +75,9 @@ struct TaskDetailView: View {
                 }
                 
                 
-                Text(task.isCompleted ? "Task is complete" : "Task is incomplete")
+                Text(isCompletedForSelectedDate() ? "Task is completed this day" : "Task is still incomplete")
                     .font(.headline)
-                    .foregroundColor(task.isCompleted ? .green : .red)
+                    .foregroundColor(isCompletedForSelectedDate() ? .green : .red)
                     .padding()
                     .frame(maxWidth: .infinity)
                     .background(
@@ -88,5 +91,11 @@ struct TaskDetailView: View {
             }
         }
         .padding()
+    }
+    
+    //check if the task is completed for the selected date
+    private func isCompletedForSelectedDate() -> Bool {
+        guard let selectedDate = selectedDate else { return false }
+        return task.completedDates?.contains(where: { Calendar.current.isDate($0, inSameDayAs: selectedDate) }) ?? false
     }
 }

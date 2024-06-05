@@ -108,7 +108,7 @@ struct TaskListView: View {
                     
                     VStack {
                         Spacer()
-                        TaskDetailView(task: task)
+                        TaskDetailView(task: task, selectedDate: $selectedDate)
                             .background(Color.white)
                             .cornerRadius(20)
                             .shadow(radius: 10)
