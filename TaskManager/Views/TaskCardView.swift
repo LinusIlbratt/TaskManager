@@ -47,7 +47,7 @@ struct TaskCardView: View {
                                         }
                                 }
                             )
-                    
+                        
                         VStack {
                             Text("\(task.numberOfFishes)")
                                 .font(.title)
@@ -72,6 +72,42 @@ struct TaskCardView: View {
                     
                     Text(task.title)
                         .font(.headline)
+                    
+                    //circles with first letter of display names
+                    VStack {
+                        if taskVM.users.isEmpty && taskVM.errorMessage == nil {
+                            Text("Loading users...")
+                        } else if let errorMessage = taskVM.errorMessage {
+                            Text("Error: \(errorMessage)")
+                                .foregroundColor(.red)
+                        } else {
+                            HStack {
+                                ForEach(taskVM.users) { user in
+                                    ZStack {
+                                        if let color = user.userColor {
+                                            Circle()
+                                                .fill(Color(hex: color))
+                                                .frame(width: 25, height: 25)
+                                        } else {
+                                            Circle()
+                                                .fill(Color.gray)
+                                                .frame(width: 25, height: 25)
+                                        }
+                                        Text(String(user.displayName.prefix(1)))
+                                            .foregroundColor(.white)
+                                            .font(.headline)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    .padding(.bottom, 10)
+                    .onAppear {
+                        //guard assignedTo if its empty
+                        guard let assignedTo = task.assignedTo else { return }
+                        
+                        taskVM.fetchUsersFromDatabase(with: assignedTo)
+                    }
                     
                     Spacer()
                 }
@@ -106,7 +142,7 @@ struct TaskCardView: View {
                     .cornerRadius(10)
                     .foregroundColor(isCompletedForSelectedDate() ? .white : .primary)
             }
-            .padding([.trailing, .bottom], 20)
+            .padding([.trailing, .bottom], 15)
             .background(Color.clear) // Ensure the button has a tappable area
             .zIndex(1) // Ensure button is on top
             .padding(10)
