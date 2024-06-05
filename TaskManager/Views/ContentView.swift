@@ -14,42 +14,45 @@ struct ContentView: View {
     @State var signedIn = false
     
     
-    var body: some View {
-        if (!signedIn) {
-            SignInView(signedIn : $signedIn)
-        } else {
-            TabView {
-                NavigationStack {
-                    TaskListView()
-                }
-                .tabItem {
-                    Label("List", systemImage: "list.dash")
-                        .font(.title)
-                        .padding()
-                }
-                
-                NavigationStack {
-                    TaskView()
-                }
-                .tabItem {
-                    Label("Scheduele", systemImage: "pencil")
-                        .font(.title)
-                        .padding()
-                }
-                
-                NavigationStack {
-                    ProfileView(signedIn: $signedIn)
-                }
-                .tabItem {
-                    Label("User", systemImage: "person.fill")
-                        .font(.title)
-                        .padding()
+    init() {
+        TabViewAppearance.setupAppearance()
+       }
+        
+        var body: some View {
+            if (!signedIn) {
+                SignInView(signedIn: $signedIn)
+            } else {
+                TabView {
+                    NavigationStack {
+                        TaskListView()
+                    }
+                    .tabItem {
+                        Label("List", systemImage: "list.dash")
+                            .font(.title)
+                            .padding()
+                    }
+                    
+                    NavigationStack {
+                        TaskView()
+                    }
+                    .tabItem {
+                        Label("Scheduele", systemImage: "pencil")
+                            .font(.title)
+                            .padding()
+                    }
+                    
+                    NavigationStack {
+                        ProfileView(signedIn: $signedIn)
+                    }
+                    .tabItem {
+                        Label("User", systemImage: "person.fill")
+                            .font(.title)
+                            .padding()
+                    }
                 }
             }
-            
         }
     }
-}
 
 struct SignInView : View {
     @StateObject private var userViewModel = UserViewModel()

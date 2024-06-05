@@ -15,34 +15,45 @@ struct ProfileView: View {
     @StateObject private var userViewModel = UserViewModel()
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            ProfileHeaderView(userViewModel: userViewModel)
-            
-            Spacer()
-            
-            ActionButton(title: "Create New Group", action: {
-                navigateToNewGroup = true
-            })
-            .navigationDestination(isPresented: $navigateToNewGroup) {
-                NewGroupView(signedIn: $signedIn, groupName: "", description: "")
+        ZStack(alignment: .top) {
+            VStack(spacing: 0) {
+                TopBar()
+                Spacer().frame(height: 20) // Adding space between TopBar and the rest of the view
+                
+                VStack(alignment: .leading, spacing: 20) {
+                    ProfileHeaderView(userViewModel: userViewModel)
+                    
+                    Spacer()
+                    
+                    VStack(spacing: 10) { // Grouping "Create New Group" and "Hire Service"
+                        ActionButton(title: "Create New Group", action: {
+                            navigateToNewGroup = true
+                        })
+                        .navigationDestination(isPresented: $navigateToNewGroup) {
+                            NewGroupView(signedIn: $signedIn, groupName: "", description: "")
+                        }
+                        
+                        ActionButton(title: "Hire Service", action: {
+                            navigateToHireService = true
+                        })
+                        .navigationDestination(isPresented: $navigateToHireService) {
+                            HireServiceView()
+                        }
+                    }
+                    
+                    Spacer().frame(height: 40) // Adding space between grouped buttons and Logout button
+
+                    LogoutButton(action: {
+                        handleLogout()
+                    })
+                    .padding(.bottom, 40)
+                }
+                .padding(.horizontal, 20)
+                .onAppear {
+                    userViewModel.fetchCurrentUser()
+                    userViewModel.fetchCurrentUserTotalAmountOfFishesCollected()
+                }
             }
-            
-            ActionButton(title: "Hire Service", action: {
-                navigateToHireService = true
-            })
-            .navigationDestination(isPresented: $navigateToHireService) {
-                HireServiceView()
-            }
-            
-            ActionButton(title: "Logout", action: {
-                handleLogout()
-            })
-            .padding(.bottom, 40)
-        }
-        .padding(.horizontal, 20)
-        .onAppear {
-            userViewModel.fetchCurrentUser()
-            userViewModel.fetchCurrentUserTotalAmountOfFishesCollected()
         }
     }
     
@@ -95,6 +106,22 @@ struct ActionButton: View {
                     RoundedRectangle(cornerRadius: 10)
                         .stroke(Color.black, lineWidth: 1)
                 )
+        }
+    }
+}
+
+struct LogoutButton: View {
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text("Logout")
+                .fontWeight(.bold)
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.black)
+                .foregroundColor(.white)
+                .cornerRadius(10)
         }
     }
 }

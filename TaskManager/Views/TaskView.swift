@@ -15,7 +15,9 @@ struct TaskView: View {
     
     var body: some View {
         NavigationStack {
-            VStack {
+            VStack(spacing: 0) {
+                TopBar()
+                
                 Text("Select task to schedule")
                     .font(.headline)
                     .padding()
@@ -30,19 +32,25 @@ struct TaskView: View {
                     }
                 }
                 
-                Spacer()
+                Spacer() // This will push the button to the bottom
                 
                 Button(action: {
                     showingAddTaskView = true
                 }) {
                     Text("Create a new task")
                         .font(.headline)
+                        .fontWeight(.bold)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.gray.opacity(0.2))
-                        .cornerRadius(10)
-                        .padding()
+                        .background(Color.clear)
+                        .foregroundColor(.black)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 5)
+                                .stroke(Color.black, lineWidth: 1)
+                        )
                 }
+                .padding(.horizontal, 20)
+                .padding(.bottom, 40) // This will add fixed space below the button to avoid being hidden by TabView
             }
             .navigationTitle("")
             .navigationBarHidden(true)
@@ -55,6 +63,7 @@ struct TaskView: View {
         }
     }
 }
+
 
 struct TaskCardListView: View {
     var task: Task
@@ -95,9 +104,11 @@ struct TaskCardListView: View {
                 VStack(alignment: .leading) {
                     Text("Cleaning")
                         .font(.footnote)
+                        .foregroundColor(.black)
 
                     Text(task.title)
                         .font(.headline)
+                        .foregroundColor(.black)
                         
                     // Print formatted due dates
                     if let dueDates = task.dueDates {
@@ -183,14 +194,18 @@ struct AddTaskView: View {
                     presentationMode.wrappedValue.dismiss()
                 }) {
                     Text("Create")
-                        .font(.headline)
+                        .fontWeight(.bold)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.gray.opacity(0.2))
-                        .cornerRadius(10)
-                        .padding(.horizontal, 16)
+                        .background(Color.clear)
+                        .foregroundColor(.black)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 5)
+                                .stroke(Color.black, lineWidth: 1)
+                        )
                 }
                 .padding(.bottom, 20)
+                .padding(.horizontal, 20)
             }
             .background(Color(UIColor.systemGroupedBackground))
             .navigationBarTitle("", displayMode: .inline)
@@ -201,8 +216,8 @@ struct AddTaskView: View {
     }
 }
 
-struct AddTaskView_Previews: PreviewProvider {
+struct TaskView_Previews: PreviewProvider {
     static var previews: some View {
-        AddTaskView(viewModel: TaskViewModel())
+        TaskView()
     }
 }
