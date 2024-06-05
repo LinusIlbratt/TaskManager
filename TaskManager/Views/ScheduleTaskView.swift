@@ -18,6 +18,12 @@ struct ScheduleTaskView: View {
     @Environment(\.dismiss) var dismiss
     var task: Task?
     
+    init(viewModel: TaskViewModel, task: Task?) {
+            self.viewModel = viewModel
+            self.task = task
+            _selectedDates = State(initialValue: Set(task?.dueDates ?? []))
+        }
+    
     var body: some View {
         ZStack(alignment: .top) {
             
@@ -95,7 +101,7 @@ struct ScheduleTaskView: View {
                             ZStack {
                                 if selectedDates.contains(date) {
                                     RoundedRectangle(cornerRadius: 8)
-                                        .fill(Color.blue)
+                                        .fill(Color.black)
                                 } else {
                                     RoundedRectangle(cornerRadius: 8)
                                         .fill(Color.clear)
@@ -103,7 +109,7 @@ struct ScheduleTaskView: View {
                                 
                                 if self.isCurrentDate(date) {
                                     RoundedRectangle(cornerRadius: 8)
-                                        .stroke(Color.blue, lineWidth: 2)
+                                        .stroke(Color.black, lineWidth: 2)
                                 }
                                 
                                 Text("\(self.dayString(from: date))")

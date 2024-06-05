@@ -17,10 +17,6 @@ struct TaskView: View {
         NavigationStack {
             VStack(spacing: 0) {
                 TopBar()
-                    .frame(maxWidth: .infinity)
-                    .background(Color.white)
-                    .shadow(radius: 5)
-                    .ignoresSafeArea(edges: .top)
                 
                 Text("Select task to schedule")
                     .font(.headline)
