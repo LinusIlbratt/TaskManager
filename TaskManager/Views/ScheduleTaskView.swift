@@ -62,6 +62,7 @@ struct ScheduleTaskView: View {
                         }) {
                             Image(systemName: "chevron.left")
                                 .padding()
+                                .foregroundColor(.black)
                         }
                         
                         Spacer()
@@ -78,6 +79,7 @@ struct ScheduleTaskView: View {
                         }) {
                             Image(systemName: "chevron.right")
                                 .padding()
+                                .foregroundColor(.black)
                         }
                     }
                     
