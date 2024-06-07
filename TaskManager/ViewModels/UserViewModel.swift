@@ -18,9 +18,85 @@ class UserViewModel: ObservableObject {
     private var firestoreServices = FirebaseService()
     @Published var currentUser: User?
     @Published var totalAmountOfFishesCollected: Int? = nil
+        
+    func getGroupMembers(groupID: String, completion: @escaping ([User]) -> Void) {
+        var members : [User] = []
+        
+        let userRef = db.collection("users")
+        userRef.getDocuments { (querySnapshot, error) in
+            if let error = error {
+                print("Error getting documents: \(error)")
+                completion(members)
+                return
+            }
+                
+            guard let documents = querySnapshot?.documents else {
+                completion(members)
+                return
+            }
+            
+            for document in documents {
+                do{
+                    let member = try document.data(as: User.self)
+                    if let memberGroups = member.groups, memberGroups.contains(groupID) {
+                        members.append(member)
+                        print(member)
+                    }
+                } catch {
+                    print("Error decoding user: \(error)")
+                }
+            }
+            completion(members)
+        }
+    }
     
+    func getMyGroups(completion: @escaping ([Groups]) -> Void) {
+        var groups : [Groups] = []
+        guard let userId = auth.currentUser?.uid else {
+            print("No logged in user")
+            completion(groups)
+            return
+        }
+        
+        let groupRef = db.collection("groups")
+        groupRef.getDocuments { (querySnapshot, error) in
+                if let error = error {
+                    print("Error getting documents: \(error)")
+                    completion(groups)
+                    return
+                }
+                
+                guard let documents = querySnapshot?.documents else {
+                    completion(groups)
+                    return
+                }
+                
+                for document in documents {
+                    if let group = try? document.data(as: Groups.self), group.owner == userId {
+                        groups.append(group)
+                    }
+                }
+                
+                completion(groups)
+            }
+    }
+    func updateGroup(id: String, name: String, description: String, completion: @escaping (Error?) -> Void) {
+        db.collection("groups").document(id).updateData([
+            "name": name,
+            "description": description
+        ]) { error in
+            if let error = error {
+                print("error updating group \(error)")
+            } else {
+                print("Group updated correct")
+            }
+        }
+        completion(nil)
+    }
+                      
     func addGroup(name : String, description : String) {
-        let group = Groups(name: name, description: description)
+        let owner = auth.currentUser?.uid ?? ""
+        let group = Groups(name: name, owner : owner, description: description)
         do {
             let groupRef = try db.collection("groups").addDocument(from: group)
             addUserTo(groupID: groupRef.documentID)
@@ -29,7 +105,6 @@ class UserViewModel: ObservableObject {
             print ("Error adding group: \(error)")
         }
     }
-    
     func addUserTo(groupID: String, currentUserID : String? = nil){
         let userID = currentUserID ?? (auth.currentUser?.uid ?? "")
         
@@ -79,6 +154,22 @@ class UserViewModel: ObservableObject {
             }
 
         }
+    }
+    
+    func removeUserFrom(groupID: String, currentUserID : String, completion: @escaping (Error?) -> Void) {
+        let userRef = db.collection("users").document(currentUserID)
+        
+        userRef.updateData([
+            "groups": FieldValue.arrayRemove([groupID])
+        ]) {error in
+            if let error = error {
+                print("remove faileed")
+            } else {
+                print("remove success")
+            }
+            completion(error)
+        }
+        
     }
     
     func addUser(user : User) {
@@ -183,5 +274,35 @@ class UserViewModel: ObservableObject {
                 }
             }
         }
+    
+    func fetchAllUsers(completion: @escaping ([User]) -> Void) {
+        var users : [User] = []
+        let userRef = db.collection("users")
+        userRef.getDocuments { snapshot, error in
+            if let error = error {
+                print("Error getting user: \(error)")
+                completion([])
+                return
+            }
+            
+            guard let documents = snapshot?.documents else {
+                completion([])
+                return
+            }
+            
+            for document in documents {
+                do {
+                    let userData = try document.data(as: User.self)
+
+                    //if let user = userData {
+                        users.append(userData)
+                    //}
+                } catch {
+                    print("Error decoding user: \(error)")
+                }
+            }
+            completion(users)
+        }
+    }
 
 }
