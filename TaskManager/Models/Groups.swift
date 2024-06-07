@@ -11,5 +11,6 @@ import FirebaseFirestoreSwift
 struct Groups: Identifiable, Codable, Hashable {
     @DocumentID var id: String? = UUID().uuidString
     var name: String
+    var owner : String
     var description: String?
 }

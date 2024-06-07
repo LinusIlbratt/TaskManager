@@ -34,6 +34,10 @@
 		E13CABFB2C08D77D00D17383 /* User.swift in Sources */ = {isa = PBXBuildFile; fileRef = E13CABFA2C08D77D00D17383 /* User.swift */; };
 		E13CABFD2C08DBBE00D17383 /* NewGroupView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E13CABFC2C08DBBE00D17383 /* NewGroupView.swift */; };
 		E13CABFF2C08DF6700D17383 /* Groups.swift in Sources */ = {isa = PBXBuildFile; fileRef = E13CABFE2C08DF6700D17383 /* Groups.swift */; };
+		E13CAC022C12D2C600D17383 /* FishAnimationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E13CAC002C12D2C600D17383 /* FishAnimationView.swift */; };
+		E13CAC032C12D2C600D17383 /* HireServiceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E13CAC012C12D2C600D17383 /* HireServiceView.swift */; };
+		E13CAC062C12D2F400D17383 /* TabViewAppearance.swift in Sources */ = {isa = PBXBuildFile; fileRef = E13CAC042C12D2F400D17383 /* TabViewAppearance.swift */; };
+		E13CAC072C12D2F400D17383 /* ColorExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = E13CAC052C12D2F400D17383 /* ColorExtension.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -81,6 +85,10 @@
 		E13CABFA2C08D77D00D17383 /* User.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = User.swift; sourceTree = "<group>"; };
 		E13CABFC2C08DBBE00D17383 /* NewGroupView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewGroupView.swift; sourceTree = "<group>"; };
 		E13CABFE2C08DF6700D17383 /* Groups.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Groups.swift; sourceTree = "<group>"; };
+		E13CAC002C12D2C600D17383 /* FishAnimationView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = FishAnimationView.swift; sourceTree = "<group>"; };
+		E13CAC012C12D2C600D17383 /* HireServiceView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = HireServiceView.swift; sourceTree = "<group>"; };
+		E13CAC042C12D2F400D17383 /* TabViewAppearance.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TabViewAppearance.swift; sourceTree = "<group>"; };
+		E13CAC052C12D2F400D17383 /* ColorExtension.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ColorExtension.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -185,6 +193,8 @@
 		1B971EBD2BF4C5F60059246E /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				E13CAC002C12D2C600D17383 /* FishAnimationView.swift */,
+				E13CAC012C12D2C600D17383 /* HireServiceView.swift */,
 				E13CABF62C08D76B00D17383 /* TaskCardView.swift */,
 				E13CABF42C08D76500D17383 /* TaskDetailView.swift */,
 				E13CABF22C08D75E00D17383 /* TopBar.swift */,
@@ -219,6 +229,8 @@
 		1B971EC12BF4C91E0059246E /* Utilities */ = {
 			isa = PBXGroup;
 			children = (
+				E13CAC052C12D2F400D17383 /* ColorExtension.swift */,
+				E13CAC042C12D2F400D17383 /* TabViewAppearance.swift */,
 				1B971ECA2BF4CB5B0059246E /* DateFormatter.swift */,
 			);
 			path = Utilities;
@@ -371,13 +383,17 @@
 				1B51E9D92BFF507600313625 /* TaskView.swift in Sources */,
 				1B971EC72BF4CAE10059246E /* TaskListView.swift in Sources */,
 				1B51E9DB2BFF593200313625 /* ScheduleTaskView.swift in Sources */,
+				E13CAC022C12D2C600D17383 /* FishAnimationView.swift in Sources */,
+				E13CAC072C12D2F400D17383 /* ColorExtension.swift in Sources */,
 				1B971ECB2BF4CB5B0059246E /* DateFormatter.swift in Sources */,
 				E13CABFF2C08DF6700D17383 /* Groups.swift in Sources */,
+				E13CAC062C12D2F400D17383 /* TabViewAppearance.swift in Sources */,
 				E13CABF32C08D75E00D17383 /* TopBar.swift in Sources */,
 				E13CABFD2C08DBBE00D17383 /* NewGroupView.swift in Sources */,
 				1B51E9D52BFF47A400313625 /* CalendarView.swift in Sources */,
 				1B971EC32BF4CA250059246E /* TaskViewModel.swift in Sources */,
 				1B971EC92BF4CB3F0059246E /* FirebaseService.swift in Sources */,
+				E13CAC032C12D2C600D17383 /* HireServiceView.swift in Sources */,
 				1B971E922BF4BCDF0059246E /* TaskManagerApp.swift in Sources */,
 				E13CABF92C08D77400D17383 /* UserViewModel.swift in Sources */,
 				E13CABF72C08D76B00D17383 /* TaskCardView.swift in Sources */,
