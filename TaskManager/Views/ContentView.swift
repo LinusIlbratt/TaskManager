@@ -65,6 +65,7 @@ struct SignInView : View {
     @State private var alertTitle : String = ""
     @State private var showDisplayNameAlert : Bool = false
     @State private var showForgotPasswordButton: Bool = false
+    @State private var userColor = Color.red
     
     var auth = Auth.auth()
     var body : some View {
@@ -194,7 +195,6 @@ struct SignInView : View {
                                 showAlert = true
                             }
                             
-                            //showAlert = false
                             showForgotPasswordButton = false
                         }
                     }
@@ -210,7 +210,7 @@ struct SignInView : View {
         .overlay() {
             ZStack {
                 if showDisplayNameAlert {
-                    DisplayNameView(isPresented: $showDisplayNameAlert, displayName: $displayName, showAlert: $showAlert, alertMessage: $alertMessage, alertTitle: $alertTitle) {
+                    DisplayNameView(isPresented: $showDisplayNameAlert, displayName: $displayName, showAlert: $showAlert, alertMessage: $alertMessage, alertTitle: $alertTitle, userColor: $userColor) {
                         registerUser()
                     }
                 }
@@ -219,7 +219,7 @@ struct SignInView : View {
     }
     
     func registerUser() {
-        userViewModel.createUser(email: userName, password: password, displayName: displayName) { success in
+        userViewModel.createUser(email: userName, password: password, displayName: displayName, userColor: userColor) { success in
             if success {
                 print("User registered correct")
                 signedIn = true
@@ -237,6 +237,7 @@ struct SignInView : View {
         @Binding var showAlert: Bool
         @Binding var alertMessage : String
         @Binding var alertTitle : String
+        @Binding var userColor : Color
         var onSave: () -> Void
         
         var body: some View {
@@ -256,6 +257,7 @@ struct SignInView : View {
                     .cornerRadius(10)
                     .padding(.horizontal, 20)
                 
+                ColorPicker("Select a color", selection: $userColor)
                 
                 HStack {
                     Button(action: {

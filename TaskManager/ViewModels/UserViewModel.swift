@@ -10,6 +10,7 @@ import FirebaseFirestore
 import FirebaseFirestoreSwift
 import Combine
 import FirebaseAuth
+import SwiftUI
 
 @MainActor
 class UserViewModel: ObservableObject {
@@ -180,14 +181,14 @@ class UserViewModel: ObservableObject {
         }
     }
     
-    func createUser(email: String, password: String, displayName : String, completion: @escaping (Bool) -> Void) {
+    func createUser(email: String, password: String, displayName : String, userColor : Color, completion: @escaping (Bool) -> Void) {
         auth.createUser(withEmail: email, password: password) { result, error in
             if let error = error {
                 print("error logging in \(error)")
                 completion(false)
             } else if let result = result {
                 
-                self.addUser(user: (User(id: result.user.uid, email: email, displayName: displayName,  totalAmountOfFishesCollected: 0)))
+                self.addUser(user: (User(id: result.user.uid, email: email, displayName: displayName,  totalAmountOfFishesCollected: 0, userColor: userColor.toHex())))
                 completion(true)
                 
             } else {
