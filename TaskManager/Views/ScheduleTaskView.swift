@@ -6,12 +6,15 @@
 //
 
 import SwiftUI
+import UserNotifications
 
 struct ScheduleTaskView: View {
     @State private var currentDate = Date()
     @State private var selectedDates: Set<Date> = []
     @State private var showUsers = false
     @State private var selectedUsers: Set<User> = []
+    @State private var showTimePicker = false
+    @State private var alarmTime = Date()
     @ObservedObject var viewModel: TaskViewModel
     @StateObject var firebaseService = FirebaseService()
     @State private var showUserList = false
@@ -19,14 +22,13 @@ struct ScheduleTaskView: View {
     var task: Task?
     
     init(viewModel: TaskViewModel, task: Task?) {
-            self.viewModel = viewModel
-            self.task = task
-            _selectedDates = State(initialValue: Set(task?.dueDates ?? []))
-        }
+        self.viewModel = viewModel
+        self.task = task
+        _selectedDates = State(initialValue: Set(task?.dueDates ?? []))
+    }
     
     var body: some View {
         ZStack(alignment: .top) {
-            
             VStack {
                 TopBar()
                 
@@ -93,7 +95,7 @@ struct ScheduleTaskView: View {
                     
                     let columns = Array(repeating: GridItem(.flexible()), count: 7)
                     
-                    LazyVGrid(columns: columns, spacing: 5) { // Adjust spacing here
+                    LazyVGrid(columns: columns, spacing: 5) {
                         ForEach(0..<self.firstWeekday(), id: \.self) { _ in
                             Text("")
                                 .frame(maxWidth: .infinity)
@@ -134,12 +136,11 @@ struct ScheduleTaskView: View {
                                     }
                                     .layoutPriority(1)
                             }
-                            
-                            .frame(minWidth: 35, maxWidth: .infinity, minHeight: 35, maxHeight: 35) // Adjust the size here
+                            .frame(minWidth: 35, maxWidth: .infinity, minHeight: 35, maxHeight: 35)
                         }
                     }
                 }
-                .padding(10) // Adjust padding here
+                .padding(10)
                 .background(
                     RoundedRectangle(cornerRadius: 10)
                         .fill(Color.white)
@@ -147,11 +148,13 @@ struct ScheduleTaskView: View {
                 )
                 .padding(.horizontal)
                 
-                Spacer() // This will push the button to the bottom
+                Spacer()
                 
                 // Buttons
                 VStack(spacing: 10) {
-                    Button(action: {}) {
+                    Button(action: {
+                        showTimePicker.toggle()
+                    }) {
                         Text("Set Alarm")
                             .font(.caption)
                             .foregroundColor(.black)
@@ -166,6 +169,35 @@ struct ScheduleTaskView: View {
                                         .stroke(Color.black, lineWidth: 1)
                                 }
                             )
+                    }
+                    .sheet(isPresented: $showTimePicker) {
+                        VStack {
+                            Text("Select Alarm Time")
+                                .font(.headline)
+                                .padding()
+                            
+                            DatePicker("Alarm Time", selection: $alarmTime, displayedComponents: .hourAndMinute)
+                                .datePickerStyle(WheelDatePickerStyle())
+                                .labelsHidden()
+                                .padding()
+                            
+                            Button(action: {
+                                if let firstDate = selectedDates.first {
+                                    scheduleNotification(for: firstDate)
+                                }
+                                showTimePicker = false
+                            }) {
+                                Text("Set Alarm")
+                                    .font(.headline)
+                                    .frame(maxWidth: .infinity)
+                                    .padding()
+                                    .background(Color.blue)
+                                    .foregroundColor(.white)
+                                    .cornerRadius(10)
+                                    .padding(.horizontal, 16)
+                            }
+                        }
+                        .padding()
                     }
                     
                     Button(action: {
@@ -194,12 +226,15 @@ struct ScheduleTaskView: View {
                             .foregroundColor(.gray)
                     }
                     
-                    Spacer().frame(height: 20) // This will add fixed space above the "Schedule Task" button
+                    Spacer().frame(height: 20)
                     
                     Button(action: {
                         if let task = task {
                             viewModel.updateTaskDueDates(task: task, dueDates: Array(selectedDates))
                             viewModel.updateTaskAssignedTo(task: task, assignedTo: selectedUsers.compactMap { $0.id })
+                            if let firstDate = selectedDates.first {
+                                scheduleNotification(for: firstDate)
+                            }
                             dismiss()
                         }
                     }) {
@@ -217,7 +252,7 @@ struct ScheduleTaskView: View {
                                 }
                             )
                     }
-                    .padding(.bottom, 40) // This will add fixed space below the button to avoid being hidden by TabView
+                    .padding(.bottom, 40)
                 }
                 .padding(.horizontal, 40)
             }
@@ -229,7 +264,44 @@ struct ScheduleTaskView: View {
                     .zIndex(1)
             }
         }
-        .edgesIgnoringSafeArea(.top) // Ignorera säkerhetsområdena upptill
+        .edgesIgnoringSafeArea(.top)
+        .onAppear {
+            requestNotificationPermission()
+            if let task = task, !(task.dueDates?.isEmpty ?? true) {
+                if let firstDueDate = task.dueDates?.first {
+                    currentDate = firstDueDate
+                }
+            }
+        }
+    }
+    
+    private func requestNotificationPermission() {
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
+            if let error = error {
+                print("Request Authorization Failed: \(error.localizedDescription)")
+            }
+        }
+    }
+    
+    private func scheduleNotification(for date: Date) {
+        let content = UNMutableNotificationContent()
+        content.title = "Task Alarm"
+        content.body = "It's time to \(task?.title ?? "complete your task")"
+        content.sound = UNNotificationSound.default
+        
+        var dateComponents = Calendar.current.dateComponents([.year, .month, .day], from: date)
+        let timeComponents = Calendar.current.dateComponents([.hour, .minute], from: alarmTime)
+        dateComponents.hour = timeComponents.hour
+        dateComponents.minute = timeComponents.minute
+        
+        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
+        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+        
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("Notification Error: \(error.localizedDescription)")
+            }
+        }
     }
 }
 
