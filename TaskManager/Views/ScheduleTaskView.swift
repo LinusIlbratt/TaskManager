@@ -55,98 +55,7 @@ struct ScheduleTaskView: View {
                     .padding(.horizontal, 40)
                 
                 // Calendar
-                VStack {
-                    HStack {
-                        Button(action: {
-                            withAnimation {
-                                self.decrementMonth()
-                            }
-                        }) {
-                            Image(systemName: "chevron.left")
-                                .padding()
-                                .foregroundColor(.black)
-                        }
-                        
-                        Spacer()
-                        
-                        Text("\(self.monthYearString(from: currentDate))")
-                            .font(.headline)
-                        
-                        Spacer()
-                        
-                        Button(action: {
-                            withAnimation {
-                                self.incrementMonth()
-                            }
-                        }) {
-                            Image(systemName: "chevron.right")
-                                .padding()
-                                .foregroundColor(.black)
-                        }
-                    }
-                    
-                    HStack {
-                        ForEach(["M", "T", "O", "T", "F", "L", "S"], id: \.self) { day in
-                            Text(day)
-                                .frame(maxWidth: .infinity)
-                                .font(.caption)
-                        }
-                    }
-                    
-                    let columns = Array(repeating: GridItem(.flexible()), count: 7)
-                    
-                    LazyVGrid(columns: columns, spacing: 5) {
-                        ForEach(0..<self.firstWeekday(), id: \.self) { _ in
-                            Text("")
-                                .frame(maxWidth: .infinity)
-                        }
-                        
-                        ForEach(self.daysInMonth(), id: \.self) { date in
-                            ZStack {
-                                if selectedDates.contains(date) {
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .fill(Color.black)
-                                } else {
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .fill(Color.clear)
-                                }
-                                
-                                if self.isCurrentDate(date) {
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .stroke(Color.black, lineWidth: 2)
-                                }
-                                
-                                Text("\(self.dayString(from: date))")
-                                    .foregroundColor(
-                                        selectedDates.contains(date) ? .white :
-                                            self.isCurrentDate(date) ? .black :
-                                            (date < Date() ? .gray : .black)
-                                    )
-                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                    .padding(4)
-                                    .background(Color.clear)
-                                    .onTapGesture {
-                                        if date >= Calendar.current.startOfDay(for: Date()) {
-                                            if selectedDates.contains(date) {
-                                                selectedDates.remove(date)
-                                            } else {
-                                                selectedDates.insert(date)
-                                            }
-                                        }
-                                    }
-                                    .layoutPriority(1)
-                            }
-                            .frame(minWidth: 35, maxWidth: .infinity, minHeight: 35, maxHeight: 35)
-                        }
-                    }
-                }
-                .padding(10)
-                .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.white)
-                        .shadow(radius: 5)
-                )
-                .padding(.horizontal)
+                ScheduleCalendarView(currentDate: $currentDate, selectedDates: $selectedDates)
                 
                 Spacer()
                 
@@ -302,59 +211,6 @@ struct ScheduleTaskView: View {
     }
 }
 
-extension ScheduleTaskView {
-    
-    private var calendar: Calendar {
-        var calendar = Calendar.current
-        calendar.firstWeekday = 2
-        return calendar
-    }
-    
-    private func daysInMonth() -> [Date] {
-        guard let range = calendar.range(of: .day, in: .month, for: currentDate) else {
-            return []
-        }
-        return range.compactMap { day -> Date? in
-            var components = calendar.dateComponents([.year, .month], from: currentDate)
-            components.day = day
-            return calendar.date(from: components)
-        }
-    }
-    
-    private func firstWeekday() -> Int {
-        let components = calendar.dateComponents([.year, .month], from: currentDate)
-        guard let firstOfMonth = calendar.date(from: components) else {
-            return 0
-        }
-        let weekday = calendar.component(.weekday, from: firstOfMonth)
-        return (weekday + 5) % 7 // adjust so all weeks starts on Monday
-    }
-    
-    private func incrementMonth() {
-        currentDate = calendar.date(byAdding: .month, value: 1, to: currentDate) ?? currentDate
-    }
-    
-    private func decrementMonth() {
-        currentDate = calendar.date(byAdding: .month, value: -1, to: currentDate) ?? currentDate
-    }
-    
-    private func monthYearString(from date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMMM yyyy"
-        return formatter.string(from: date)
-    }
-    
-    private func dayString(from date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "d"
-        return formatter.string(from: date)
-    }
-    
-    private func isCurrentDate(_ date: Date) -> Bool {
-        calendar.isDate(date, inSameDayAs: Date())
-    }
-}
-
 struct TaskInfoView: View {
     var task: Task?
     
@@ -494,3 +350,156 @@ struct ScheduleTaskView_Previews: PreviewProvider {
 
 
 
+
+struct ScheduleCalendarView: View {
+    @Binding var currentDate: Date
+    @Binding var selectedDates: Set<Date>
+    
+    var body: some View {
+        VStack {
+            HStack {
+                Button(action: {
+                    withAnimation {
+                        self.decrementMonth()
+                    }
+                }) {
+                    Image(systemName: "chevron.left")
+                        .padding()
+                        .foregroundColor(.black)
+                }
+                
+                Spacer()
+                
+                Text("\(self.monthYearString(from: currentDate))")
+                    .font(.headline)
+                
+                Spacer()
+                
+                Button(action: {
+                    withAnimation {
+                        self.incrementMonth()
+                    }
+                }) {
+                    Image(systemName: "chevron.right")
+                        .padding()
+                        .foregroundColor(.black)
+                }
+            }
+            
+            HStack {
+                ForEach(["M", "T", "O", "T", "F", "L", "S"], id: \.self) { day in
+                    Text(day)
+                        .frame(maxWidth: .infinity)
+                        .font(.caption)
+                }
+            }
+            
+            let columns = Array(repeating: GridItem(.flexible()), count: 7)
+            
+            LazyVGrid(columns: columns, spacing: 5) {
+                ForEach(0..<self.firstWeekday(), id: \.self) { _ in
+                    Text("")
+                        .frame(maxWidth: .infinity)
+                }
+                
+                ForEach(self.daysInMonth(), id: \.self) { date in
+                    ZStack {
+                        if selectedDates.contains(date) {
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.black)
+                        } else {
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.clear)
+                        }
+                        
+                        if self.isCurrentDate(date) {
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.black, lineWidth: 2)
+                        }
+                        
+                        Text("\(self.dayString(from: date))")
+                            .foregroundColor(
+                                selectedDates.contains(date) ? .white :
+                                    self.isCurrentDate(date) ? .black :
+                                    (date < Date() ? .gray : .black)
+                            )
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .padding(4)
+                            .background(Color.clear)
+                            .onTapGesture {
+                                if date >= Calendar.current.startOfDay(for: Date()) {
+                                    if selectedDates.contains(date) {
+                                        selectedDates.remove(date)
+                                    } else {
+                                        selectedDates.insert(date)
+                                    }
+                                }
+                            }
+                            .layoutPriority(1)
+                    }
+                    .frame(minWidth: 35, maxWidth: .infinity, minHeight: 35, maxHeight: 35)
+                }
+            }
+        }
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.white)
+                .shadow(radius: 5)
+        )
+        .padding(.horizontal)
+    }
+}
+
+extension ScheduleCalendarView {
+    
+    private var calendar: Calendar {
+        var calendar = Calendar.current
+        calendar.firstWeekday = 2
+        return calendar
+    }
+    
+    private func monthYearString(from date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM yyyy"
+        return formatter.string(from: date)
+    }
+    
+    private func firstWeekday() -> Int {
+        let components = calendar.dateComponents([.year, .month], from: currentDate)
+        guard let firstOfMonth = calendar.date(from: components) else {
+            return 0
+        }
+        let weekday = calendar.component(.weekday, from: firstOfMonth)
+        return (weekday + 5) % 7 // adjust so all weeks starts on Monday
+    }
+    
+    private func daysInMonth() -> [Date] {
+        guard let range = calendar.range(of: .day, in: .month, for: currentDate) else {
+            return []
+        }
+        return range.compactMap { day -> Date? in
+            var components = calendar.dateComponents([.year, .month], from: currentDate)
+            components.day = day
+            return calendar.date(from: components)
+        }
+    }
+    
+    private func dayString(from date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "d"
+        return formatter.string(from: date)
+    }
+    
+    private func isCurrentDate(_ date: Date) -> Bool {
+        calendar.isDate(date, inSameDayAs: Date())
+    }
+    
+    private func incrementMonth() {
+        currentDate = calendar.date(byAdding: .month, value: 1, to: currentDate) ?? currentDate
+    }
+    
+    private func decrementMonth() {
+        currentDate = calendar.date(byAdding: .month, value: -1, to: currentDate) ?? currentDate
+    }
+}
