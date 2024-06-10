@@ -11,22 +11,22 @@ import UserNotifications
 struct ScheduleTaskView: View {
     @State private var currentDate = Date()
     @State private var selectedDates: Set<Date> = []
-    @State private var showUsers = false
-    @State private var selectedUsers: Set<User> = []
+    @State private var showGroupList = false
+    @State private var selectedGroups: Set<Groups> = []
     @State private var showTimePicker = false
     @State private var alarmTime = Date()
     @ObservedObject var viewModel: TaskViewModel
+    @ObservedObject var userVM: UserViewModel
     @StateObject var firebaseService = FirebaseService()
-    @State private var showUserList = false
     @Environment(\.dismiss) var dismiss
     var task: Task?
     
     init(viewModel: TaskViewModel, task: Task?) {
-        self.viewModel = viewModel
-        self.task = task
-        _selectedDates = State(initialValue: Set(task?.dueDates ?? []))
-    }
-    
+            self.viewModel = viewModel
+            self.userVM = UserViewModel() // Initiera userVM här
+            self.task = task
+            _selectedDates = State(initialValue: Set(task?.dueDates ?? []))
+        }
     var body: some View {
         ZStack(alignment: .top) {
             VStack {
@@ -54,8 +54,8 @@ struct ScheduleTaskView: View {
                     showTimePicker: $showTimePicker,
                     alarmTime: $alarmTime,
                     firebaseService: firebaseService,
-                    showUserList: $showUserList,
-                    selectedUsers: $selectedUsers,
+                    showGroupList: $showGroupList,
+                    selectedGroups: $selectedGroups,
                     task: task,
                     viewModel: viewModel,
                     selectedDates: $selectedDates,
@@ -64,9 +64,9 @@ struct ScheduleTaskView: View {
             }
             .padding(.vertical, 40)
             
-            if showUserList {
-                UsersListView(isPresented: $showUserList, selectedUsers: $selectedUsers)
-                    .environmentObject(firebaseService)
+            if showGroupList {
+                GroupsListView(isPresented: $showGroupList, selectedGroups: $selectedGroups)
+                    .environmentObject(userVM)
                     .zIndex(1)
             }
         }
@@ -89,6 +89,7 @@ struct ScheduleTaskView: View {
         }
     }
 }
+
 
 struct ScheduleTaskView_Previews: PreviewProvider {
     static var previews: some View {
@@ -267,12 +268,13 @@ struct ActionButtonView: View {
     @Binding var showTimePicker: Bool
     @Binding var alarmTime: Date
     @ObservedObject var firebaseService: FirebaseService
-    @Binding var showUserList: Bool
-    @Binding var selectedUsers: Set<User>
+    @Binding var showGroupList: Bool
+    @Binding var selectedGroups: Set<Groups>
     var task: Task?
     var viewModel: TaskViewModel
     @Binding var selectedDates: Set<Date>
     var dismiss: DismissAction
+    @EnvironmentObject var userViewModel: UserViewModel
     
     var body: some View {
         VStack(spacing: 10) {
@@ -304,17 +306,21 @@ struct ActionButtonView: View {
             }
             
             Button(action: {
-                firebaseService.fetchUsers()
-                showUserList.toggle()
+                showGroupList.toggle()
             }) {
-                Text("Assign family member")
+                Text("Assign group")
                     .buttonStyle()
             }
             
-            if !selectedUsers.isEmpty {
-                Text("Selected Users: \(selectedUsers.map { $0.displayName }.joined(separator: ", "))")
+            if !selectedGroups.isEmpty {
+                Text("Selected Groups: \(selectedGroups.map { $0.name }.joined(separator: ", "))")
                     .font(.caption)
                     .foregroundColor(.gray)
+            }
+            
+            if showGroupList {
+                GroupsListView(isPresented: $showGroupList, selectedGroups: $selectedGroups)
+                    .environmentObject(userViewModel)
             }
             
             Spacer().frame(height: 20)
@@ -322,7 +328,7 @@ struct ActionButtonView: View {
             Button(action: {
                 if let task = task {
                     viewModel.updateTaskDueDates(task: task, dueDates: Array(selectedDates))
-                    viewModel.updateTaskAssignedTo(task: task, assignedTo: selectedUsers.compactMap { $0.id })
+                    viewModel.updateTaskAssignedTo(task: task, assignedTo: selectedGroups.compactMap { $0.id })
                     if let firstDate = selectedDates.first {
                         scheduleNotification(for: firstDate)
                     }
@@ -370,6 +376,91 @@ struct ActionButtonView: View {
     }
 }
 
+
+struct GroupsListView: View {
+    @EnvironmentObject var userViewModel: UserViewModel
+    @Binding var isPresented: Bool
+    @Binding var selectedGroups: Set<Groups>
+    @State private var groups: [Groups] = []
+
+    var body: some View {
+        GeometryReader { geometry in
+            VStack {
+                Text("Select Group")
+                    .font(.headline)
+                    .padding()
+                
+                List(groups) { group in
+                    HStack {
+                        Text(group.name)
+                        Spacer()
+                        if selectedGroups.contains(group) {
+                            Image(systemName: "checkmark")
+                                .foregroundColor(.blue)
+                        }
+                    }
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        if selectedGroups.contains(group) {
+                            selectedGroups.remove(group)
+                        } else {
+                            selectedGroups.insert(group)
+                        }
+                    }
+                }
+                
+                HStack {
+                    Button(action: {
+                        isPresented = false
+                    }) {
+                        Text("Close")
+                            .padding()
+                            .foregroundColor(.black)
+                            .background(
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(Color.white.opacity(0.5))
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .stroke(Color.black, lineWidth: 1)
+                                }
+                            )
+                    }
+                    .padding()
+                    
+                    Button(action: {
+                        isPresented = false
+                    }) {
+                        Text("Add")
+                            .padding()
+                            .foregroundColor(.black)
+                            .background(
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(Color.white.opacity(0.5))
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .stroke(Color.black, lineWidth: 1)
+                                }
+                            )
+                    }
+                }
+            }
+            .frame(width: 300, height: 400)
+            .background(Color.white)
+            .cornerRadius(20)
+            .shadow(radius: 20)
+            .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
+            .onAppear {
+                userViewModel.getMyGroups { fetchedGroups in
+                    self.groups = fetchedGroups
+                }
+            }
+        }
+    }
+}
+
+
+
+/*
 struct UsersListView: View {
     @EnvironmentObject var firebaseService: FirebaseService
     @Binding var isPresented: Bool
@@ -444,6 +535,7 @@ struct UsersListView: View {
         }
     }
 }
+ */
 
 extension ScheduleCalendarView {
     
