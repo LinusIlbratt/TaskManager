@@ -10,6 +10,7 @@ import SwiftUI
 
 struct TaskView: View {
     @StateObject private var viewModel = TaskViewModel()
+    @StateObject private var userViewModel = UserViewModel()  // Lägg till UserViewModel här
     @State private var showingAddTaskView = false
     @State private var selectedTask: Task? = nil
     
@@ -25,7 +26,8 @@ struct TaskView: View {
                 ScrollView {
                      ForEach(viewModel.tasks) { task in
                          HStack {
-                             NavigationLink(destination: ScheduleTaskView(viewModel: viewModel, task: task)) {
+                             NavigationLink(destination: ScheduleTaskView(viewModel: viewModel, task: task)) 
+                                              .environmentObject(userViewModel)) {
                                  TaskCardListView(task: task, taskVM: viewModel)
                                      .padding(.horizontal)
                                      .padding(.top, 5)
@@ -44,6 +46,7 @@ struct TaskView: View {
                          }
                      }
                  }
+
                 
                 Spacer() // This will push the button to the bottom
                 
@@ -74,6 +77,7 @@ struct TaskView: View {
                 AddTaskView(viewModel: viewModel)
             }
         }
+        .environmentObject(userViewModel)  // Injicera UserViewModel här
     }
 }
 

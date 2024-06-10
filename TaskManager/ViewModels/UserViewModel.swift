@@ -19,6 +19,8 @@ class UserViewModel: ObservableObject {
     private var firestoreServices = FirebaseService()
     @Published var currentUser: User?
     @Published var totalAmountOfFishesCollected: Int? = nil
+    @Published var groups: [Groups] = []
+    @Published var users: [User] = []
         
     func getGroupMembers(groupID: String, completion: @escaping ([User]) -> Void) {
         var members : [User] = []
