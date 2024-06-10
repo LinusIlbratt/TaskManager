@@ -31,15 +31,7 @@ struct ScheduleTaskView: View {
         ZStack(alignment: .top) {
             VStack {
                 TopBar()
-                
-                HStack {
-                    Text("Schedule Task")
-                        .font(.headline)
-                    Spacer()
-                }
-                .padding(.horizontal)
-                
-                // Task information
+                ScheduleTaskHeader()
                 TaskInfoView(task: task)
                     .frame(maxWidth: .infinity)
                     .frame(height: 60)
@@ -54,113 +46,21 @@ struct ScheduleTaskView: View {
                     )
                     .padding(.horizontal, 40)
                 
-                // Calendar
                 ScheduleCalendarView(currentDate: $currentDate, selectedDates: $selectedDates)
                 
                 Spacer()
                 
-                // Buttons
-                VStack(spacing: 10) {
-                    Button(action: {
-                        showTimePicker.toggle()
-                    }) {
-                        Text("Set Alarm")
-                            .font(.caption)
-                            .foregroundColor(.black)
-                            .frame(maxWidth: .infinity)
-                            .frame(maxHeight: 5)
-                            .padding()
-                            .background(
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .fill(Color.white.opacity(0.5))
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .stroke(Color.black, lineWidth: 1)
-                                }
-                            )
-                    }
-                    .sheet(isPresented: $showTimePicker) {
-                        VStack {
-                            Text("Select Alarm Time")
-                                .font(.headline)
-                                .padding()
-                            
-                            DatePicker("Alarm Time", selection: $alarmTime, displayedComponents: .hourAndMinute)
-                                .datePickerStyle(WheelDatePickerStyle())
-                                .labelsHidden()
-                                .padding()
-                            
-                            Button(action: {
-                                showTimePicker = false
-                            }) {
-                                Text("Set Alarm")
-                                    .font(.headline)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.blue)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(10)
-                                    .padding(.horizontal, 16)
-                            }
-                        }
-                        .padding()
-                    }
-                    
-                    Button(action: {
-                        firebaseService.fetchUsers()
-                        showUserList.toggle()
-                    }) {
-                        Text("Assign family member")
-                            .font(.caption)
-                            .foregroundColor(.black)
-                            .frame(maxWidth: .infinity)
-                            .frame(maxHeight: 5)
-                            .padding()
-                            .background(
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .fill(Color.white.opacity(0.5))
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .stroke(Color.black, lineWidth: 1)
-                                }
-                            )
-                    }
-                    
-                    if !selectedUsers.isEmpty {
-                        Text("Selected Users: \(selectedUsers.map { $0.displayName }.joined(separator: ", "))")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                    }
-                    
-                    Spacer().frame(height: 20)
-                    
-                    Button(action: {
-                        if let task = task {
-                            viewModel.updateTaskDueDates(task: task, dueDates: Array(selectedDates))
-                            viewModel.updateTaskAssignedTo(task: task, assignedTo: selectedUsers.compactMap { $0.id })
-                            if let firstDate = selectedDates.first {
-                                scheduleNotification(for: firstDate)
-                            }
-                            dismiss()
-                        }
-                    }) {
-                        Text("Schedule Task")
-                            .font(.headline)
-                            .foregroundColor(.black)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 4)
-                                        .fill(Color.white.opacity(0.5))
-                                    RoundedRectangle(cornerRadius: 4)
-                                        .stroke(Color.black, lineWidth: 1)
-                                }
-                            )
-                    }
-                    .padding(.bottom, 40)
-                }
-                .padding(.horizontal, 40)
+                ActionButtonView(
+                    showTimePicker: $showTimePicker,
+                    alarmTime: $alarmTime,
+                    firebaseService: firebaseService,
+                    showUserList: $showUserList,
+                    selectedUsers: $selectedUsers,
+                    task: task,
+                    viewModel: viewModel,
+                    selectedDates: $selectedDates,
+                    dismiss: dismiss
+                )
             }
             .padding(.vertical, 40)
             
@@ -188,26 +88,35 @@ struct ScheduleTaskView: View {
             }
         }
     }
-    
-    private func scheduleNotification(for date: Date) {
-        let content = UNMutableNotificationContent()
-        content.title = "Task Alarm"
-        content.body = "It's time to \(task?.title ?? "complete your task")"
-        content.sound = UNNotificationSound.default
-        
-        var dateComponents = Calendar.current.dateComponents([.year, .month, .day], from: date)
-        let timeComponents = Calendar.current.dateComponents([.hour, .minute], from: alarmTime)
-        dateComponents.hour = timeComponents.hour
-        dateComponents.minute = timeComponents.minute
-        
-        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
-        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
-        
-        UNUserNotificationCenter.current().add(request) { error in
-            if let error = error {
-                print("Notification Error: \(error.localizedDescription)")
-            }
+}
+
+struct ScheduleTaskView_Previews: PreviewProvider {
+    static var previews: some View {
+        ScheduleTaskView(viewModel: TaskViewModel(), task: Task(
+            id: "1",
+            title: "Example Task",
+            description: "This is an example task",
+            dueDates: [Date()],
+            specificDate: Date(),
+            isCompleted: false,
+            assignedTo: ["User"],
+            createdBy: "User",
+            createdAt: Date(),
+            familyId: "Family1",
+            taskColor: "Red",
+            numberOfFishes: 5
+        ))
+    }
+}
+
+struct ScheduleTaskHeader: View {
+    var body: some View {
+        HStack {
+            Text("Schedule Task")
+                .font(.headline)
+            Spacer()
         }
+        .padding(.horizontal)
     }
 }
 
@@ -253,103 +162,6 @@ struct TaskInfoView: View {
         .padding()
     }
 }
-
-struct UsersListView: View {
-    @EnvironmentObject var firebaseService: FirebaseService
-    @Binding var isPresented: Bool
-    @Binding var selectedUsers: Set<User>
-    
-    var body: some View {
-        GeometryReader { geometry in
-            VStack {
-                Text("Select User")
-                    .font(.headline)
-                    .padding()
-                
-                List(firebaseService.users) { user in
-                    HStack {
-                        Text(user.displayName)
-                        Spacer()
-                        if selectedUsers.contains(user) {
-                            Image(systemName: "checkmark")
-                                .foregroundColor(.blue)
-                        }
-                    }
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        if selectedUsers.contains(user) {
-                            selectedUsers.remove(user)
-                        } else {
-                            selectedUsers.insert(user)
-                        }
-                    }
-                }
-                
-                HStack {
-                    Button(action: {
-                        isPresented = false
-                    }) {
-                        Text("Close")
-                            .padding()
-                            .foregroundColor(.black)
-                            .background(
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 4)
-                                        .fill(Color.white.opacity(0.5))
-                                    RoundedRectangle(cornerRadius: 4)
-                                        .stroke(Color.black, lineWidth: 1)
-                                }
-                            )
-                    }
-                    .padding()
-                    
-                    Button(action: {
-                        isPresented = false
-                    }) {
-                        Text("Add")
-                            .padding()
-                            .foregroundColor(.black)
-                            .background(
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 4)
-                                        .fill(Color.white.opacity(0.5))
-                                    RoundedRectangle(cornerRadius: 4)
-                                        .stroke(Color.black, lineWidth: 1)
-                                }
-                            )
-                    }
-                }
-            }
-            .frame(width: 300, height: 400)
-            .background(Color.white)
-            .cornerRadius(20)
-            .shadow(radius: 20)
-            .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
-        }
-    }
-}
-
-struct ScheduleTaskView_Previews: PreviewProvider {
-    static var previews: some View {
-        ScheduleTaskView(viewModel: TaskViewModel(), task: Task(
-            id: "1",
-            title: "Example Task",
-            description: "This is an example task",
-            dueDates: [Date()],
-            specificDate: Date(),
-            isCompleted: false,
-            assignedTo: ["User"],
-            createdBy: "User",
-            createdAt: Date(),
-            familyId: "Family1",
-            taskColor: "Red",
-            numberOfFishes: 5
-        ))
-    }
-}
-
-
-
 
 struct ScheduleCalendarView: View {
     @Binding var currentDate: Date
@@ -448,6 +260,224 @@ struct ScheduleCalendarView: View {
                 .shadow(radius: 5)
         )
         .padding(.horizontal)
+    }
+}
+
+struct ActionButtonView: View {
+    @Binding var showTimePicker: Bool
+    @Binding var alarmTime: Date
+    @ObservedObject var firebaseService: FirebaseService
+    @Binding var showUserList: Bool
+    @Binding var selectedUsers: Set<User>
+    var task: Task?
+    var viewModel: TaskViewModel
+    @Binding var selectedDates: Set<Date>
+    var dismiss: DismissAction
+    
+    var body: some View {
+        VStack(spacing: 10) {
+            Button(action: {
+                showTimePicker.toggle()
+            }) {
+                Text("Set Alarm")
+                    .font(.caption)
+                    .foregroundColor(.black)
+                    .frame(maxWidth: .infinity)
+                    .frame(maxHeight: 5)
+                    .padding()
+                    .background(
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(Color.white.opacity(0.5))
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(Color.black, lineWidth: 1)
+                        }
+                    )
+            }
+            .sheet(isPresented: $showTimePicker) {
+                VStack {
+                    Text("Select Alarm Time")
+                        .font(.headline)
+                        .padding()
+                    
+                    DatePicker("Alarm Time", selection: $alarmTime, displayedComponents: .hourAndMinute)
+                        .datePickerStyle(WheelDatePickerStyle())
+                        .labelsHidden()
+                        .padding()
+                    
+                    Button(action: {
+                        showTimePicker = false
+                    }) {
+                        Text("Set Alarm")
+                            .font(.caption)
+                            .foregroundColor(.black)
+                            .frame(maxWidth: .infinity)
+                            .frame(maxHeight: 5)
+                            .padding()
+                            .background(
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .fill(Color.white.opacity(0.5))
+                                    RoundedRectangle(cornerRadius: 20)
+                                        .stroke(Color.black, lineWidth: 1)
+                                }
+                            )
+                    }
+                }
+                .padding()
+            }
+            
+            Button(action: {
+                firebaseService.fetchUsers()
+                showUserList.toggle()
+            }) {
+                Text("Assign family member")
+                    .font(.caption)
+                    .foregroundColor(.black)
+                    .frame(maxWidth: .infinity)
+                    .frame(maxHeight: 5)
+                    .padding()
+                    .background(
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(Color.white.opacity(0.5))
+                            RoundedRectangle(cornerRadius: 20)
+                                .stroke(Color.black, lineWidth: 1)
+                        }
+                    )
+            }
+            
+            if !selectedUsers.isEmpty {
+                Text("Selected Users: \(selectedUsers.map { $0.displayName }.joined(separator: ", "))")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+            }
+            
+            Spacer().frame(height: 20)
+            
+            Button(action: {
+                if let task = task {
+                    viewModel.updateTaskDueDates(task: task, dueDates: Array(selectedDates))
+                    viewModel.updateTaskAssignedTo(task: task, assignedTo: selectedUsers.compactMap { $0.id })
+                    if let firstDate = selectedDates.first {
+                        scheduleNotification(for: firstDate)
+                    }
+                    dismiss()
+                }
+            }) {
+                Text("Schedule Task")
+                    .font(.headline)
+                    .foregroundColor(.black)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color.white.opacity(0.5))
+                            RoundedRectangle(cornerRadius: 4)
+                                .stroke(Color.black, lineWidth: 1)
+                        }
+                    )
+            }
+            .padding(.bottom, 40)
+        }
+        .padding(.horizontal, 40)
+    }
+    
+    private func scheduleNotification(for date: Date) {
+        let content = UNMutableNotificationContent()
+        content.title = "Task Alarm"
+        content.body = "It's time to \(task?.title ?? "complete your task")"
+        content.sound = UNNotificationSound.default
+        
+        var dateComponents = Calendar.current.dateComponents([.year, .month, .day], from: date)
+        let timeComponents = Calendar.current.dateComponents([.hour, .minute], from: alarmTime)
+        dateComponents.hour = timeComponents.hour
+        dateComponents.minute = timeComponents.minute
+        
+        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
+        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+        
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("Notification Error: \(error.localizedDescription)")
+            }
+        }
+    }
+}
+
+struct UsersListView: View {
+    @EnvironmentObject var firebaseService: FirebaseService
+    @Binding var isPresented: Bool
+    @Binding var selectedUsers: Set<User>
+    
+    var body: some View {
+        GeometryReader { geometry in
+            VStack {
+                Text("Select User")
+                    .font(.headline)
+                    .padding()
+                
+                List(firebaseService.users) { user in
+                    HStack {
+                        Text(user.displayName)
+                        Spacer()
+                        if selectedUsers.contains(user) {
+                            Image(systemName: "checkmark")
+                                .foregroundColor(.blue)
+                        }
+                    }
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        if selectedUsers.contains(user) {
+                            selectedUsers.remove(user)
+                        } else {
+                            selectedUsers.insert(user)
+                        }
+                    }
+                }
+                
+                HStack {
+                    Button(action: {
+                        isPresented = false
+                    }) {
+                        Text("Close")
+                            .padding()
+                            .foregroundColor(.black)
+                            .background(
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(Color.white.opacity(0.5))
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .stroke(Color.black, lineWidth: 1)
+                                }
+                            )
+                    }
+                    .padding()
+                    
+                    Button(action: {
+                        isPresented = false
+                    }) {
+                        Text("Add")
+                            .padding()
+                            .foregroundColor(.black)
+                            .background(
+                                ZStack {
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(Color.white.opacity(0.5))
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .stroke(Color.black, lineWidth: 1)
+                                }
+                            )
+                    }
+                }
+            }
+            .frame(width: 300, height: 400)
+            .background(Color.white)
+            .cornerRadius(20)
+            .shadow(radius: 20)
+            .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
+        }
     }
 }
 
