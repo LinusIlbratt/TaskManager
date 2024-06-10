@@ -280,19 +280,7 @@ struct ActionButtonView: View {
                 showTimePicker.toggle()
             }) {
                 Text("Set Alarm")
-                    .font(.caption)
-                    .foregroundColor(.black)
-                    .frame(maxWidth: .infinity)
-                    .frame(maxHeight: 5)
-                    .padding()
-                    .background(
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 20)
-                                .fill(Color.white.opacity(0.5))
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(Color.black, lineWidth: 1)
-                        }
-                    )
+                    .buttonStyle()
             }
             .sheet(isPresented: $showTimePicker) {
                 VStack {
@@ -309,19 +297,7 @@ struct ActionButtonView: View {
                         showTimePicker = false
                     }) {
                         Text("Set Alarm")
-                            .font(.caption)
-                            .foregroundColor(.black)
-                            .frame(maxWidth: .infinity)
-                            .frame(maxHeight: 5)
-                            .padding()
-                            .background(
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .fill(Color.white.opacity(0.5))
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .stroke(Color.black, lineWidth: 1)
-                                }
-                            )
+                            .buttonStyle()
                     }
                 }
                 .padding()
@@ -332,19 +308,7 @@ struct ActionButtonView: View {
                 showUserList.toggle()
             }) {
                 Text("Assign family member")
-                    .font(.caption)
-                    .foregroundColor(.black)
-                    .frame(maxWidth: .infinity)
-                    .frame(maxHeight: 5)
-                    .padding()
-                    .background(
-                        ZStack {
-                            RoundedRectangle(cornerRadius: 20)
-                                .fill(Color.white.opacity(0.5))
-                            RoundedRectangle(cornerRadius: 20)
-                                .stroke(Color.black, lineWidth: 1)
-                        }
-                    )
+                    .buttonStyle()
             }
             
             if !selectedUsers.isEmpty {
