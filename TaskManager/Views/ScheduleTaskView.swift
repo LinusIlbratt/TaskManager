@@ -182,9 +182,6 @@ struct ScheduleTaskView: View {
                                 .padding()
                             
                             Button(action: {
-                                if let firstDate = selectedDates.first {
-                                    scheduleNotification(for: firstDate)
-                                }
                                 showTimePicker = false
                             }) {
                                 Text("Set Alarm")
@@ -267,8 +264,8 @@ struct ScheduleTaskView: View {
         .edgesIgnoringSafeArea(.top)
         .onAppear {
             requestNotificationPermission()
-            if let task = task, !(task.dueDates?.isEmpty ?? true) {
-                if let firstDueDate = task.dueDates?.first {
+            if let task = task, let dueDates = task.dueDates, !dueDates.isEmpty {
+                if let firstDueDate = dueDates.first {
                     currentDate = firstDueDate
                 }
             }
@@ -494,5 +491,6 @@ struct ScheduleTaskView_Previews: PreviewProvider {
         ))
     }
 }
+
 
 
