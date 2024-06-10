@@ -22,17 +22,31 @@ struct TaskView: View {
                 Text("Select task to schedule")
                     .font(.headline)
                     .padding()
-                
+
                 ScrollView {
-                    ForEach(viewModel.tasks) { task in
-                        NavigationLink(destination: ScheduleTaskView(viewModel: viewModel, task: task)
-                                        .environmentObject(userViewModel)) {  // Vidarebefordra UserViewModel här
-                            TaskCardListView(task: task, taskVM: viewModel)
-                                .padding(.horizontal)
-                                .padding(.top, 5)
-                        }
-                    }
-                }
+                     ForEach(viewModel.tasks) { task in
+                         HStack {
+                             NavigationLink(destination: ScheduleTaskView(viewModel: viewModel, task: task)) 
+                                              .environmentObject(userViewModel)) {
+                                 TaskCardListView(task: task, taskVM: viewModel)
+                                     .padding(.horizontal)
+                                     .padding(.top, 5)
+                             }
+
+                             Spacer()
+
+                            //trash can to delete the task
+                             Button(action: {
+                                 viewModel.deleteTask(task: task)
+                             }) {
+                                 Image(systemName: "trash")
+                                     .foregroundColor(.red)
+                             }
+                             .padding(.trailing)
+                         }
+                     }
+                 }
+
                 
                 Spacer() // This will push the button to the bottom
                 
