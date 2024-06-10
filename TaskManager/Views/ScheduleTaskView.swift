@@ -31,15 +31,7 @@ struct ScheduleTaskView: View {
         ZStack(alignment: .top) {
             VStack {
                 TopBar()
-                
-                HStack {
-                    Text("Schedule Task")
-                        .font(.headline)
-                    Spacer()
-                }
-                .padding(.horizontal)
-                
-                // Task information
+                ScheduleTaskHeader()
                 TaskInfoView(task: task)
                     .frame(maxWidth: .infinity)
                     .frame(height: 60)
@@ -54,204 +46,21 @@ struct ScheduleTaskView: View {
                     )
                     .padding(.horizontal, 40)
                 
-                // Calendar
-                VStack {
-                    HStack {
-                        Button(action: {
-                            withAnimation {
-                                self.decrementMonth()
-                            }
-                        }) {
-                            Image(systemName: "chevron.left")
-                                .padding()
-                                .foregroundColor(.black)
-                        }
-                        
-                        Spacer()
-                        
-                        Text("\(self.monthYearString(from: currentDate))")
-                            .font(.headline)
-                        
-                        Spacer()
-                        
-                        Button(action: {
-                            withAnimation {
-                                self.incrementMonth()
-                            }
-                        }) {
-                            Image(systemName: "chevron.right")
-                                .padding()
-                                .foregroundColor(.black)
-                        }
-                    }
-                    
-                    HStack {
-                        ForEach(["M", "T", "O", "T", "F", "L", "S"], id: \.self) { day in
-                            Text(day)
-                                .frame(maxWidth: .infinity)
-                                .font(.caption)
-                        }
-                    }
-                    
-                    let columns = Array(repeating: GridItem(.flexible()), count: 7)
-                    
-                    LazyVGrid(columns: columns, spacing: 5) {
-                        ForEach(0..<self.firstWeekday(), id: \.self) { _ in
-                            Text("")
-                                .frame(maxWidth: .infinity)
-                        }
-                        
-                        ForEach(self.daysInMonth(), id: \.self) { date in
-                            ZStack {
-                                if selectedDates.contains(date) {
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .fill(Color.black)
-                                } else {
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .fill(Color.clear)
-                                }
-                                
-                                if self.isCurrentDate(date) {
-                                    RoundedRectangle(cornerRadius: 8)
-                                        .stroke(Color.black, lineWidth: 2)
-                                }
-                                
-                                Text("\(self.dayString(from: date))")
-                                    .foregroundColor(
-                                        selectedDates.contains(date) ? .white :
-                                            self.isCurrentDate(date) ? .black :
-                                            (date < Date() ? .gray : .black)
-                                    )
-                                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                                    .padding(4)
-                                    .background(Color.clear)
-                                    .onTapGesture {
-                                        if date >= Calendar.current.startOfDay(for: Date()) {
-                                            if selectedDates.contains(date) {
-                                                selectedDates.remove(date)
-                                            } else {
-                                                selectedDates.insert(date)
-                                            }
-                                        }
-                                    }
-                                    .layoutPriority(1)
-                            }
-                            .frame(minWidth: 35, maxWidth: .infinity, minHeight: 35, maxHeight: 35)
-                        }
-                    }
-                }
-                .padding(10)
-                .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.white)
-                        .shadow(radius: 5)
-                )
-                .padding(.horizontal)
+                ScheduleCalendarView(currentDate: $currentDate, selectedDates: $selectedDates)
                 
                 Spacer()
                 
-                // Buttons
-                VStack(spacing: 10) {
-                    Button(action: {
-                        showTimePicker.toggle()
-                    }) {
-                        Text("Set Alarm")
-                            .font(.caption)
-                            .foregroundColor(.black)
-                            .frame(maxWidth: .infinity)
-                            .frame(maxHeight: 5)
-                            .padding()
-                            .background(
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .fill(Color.white.opacity(0.5))
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .stroke(Color.black, lineWidth: 1)
-                                }
-                            )
-                    }
-                    .sheet(isPresented: $showTimePicker) {
-                        VStack {
-                            Text("Select Alarm Time")
-                                .font(.headline)
-                                .padding()
-                            
-                            DatePicker("Alarm Time", selection: $alarmTime, displayedComponents: .hourAndMinute)
-                                .datePickerStyle(WheelDatePickerStyle())
-                                .labelsHidden()
-                                .padding()
-                            
-                            Button(action: {
-                                showTimePicker = false
-                            }) {
-                                Text("Set Alarm")
-                                    .font(.headline)
-                                    .frame(maxWidth: .infinity)
-                                    .padding()
-                                    .background(Color.blue)
-                                    .foregroundColor(.white)
-                                    .cornerRadius(10)
-                                    .padding(.horizontal, 16)
-                            }
-                        }
-                        .padding()
-                    }
-                    
-                    Button(action: {
-                        firebaseService.fetchUsers()
-                        showUserList.toggle()
-                    }) {
-                        Text("Assign family member")
-                            .font(.caption)
-                            .foregroundColor(.black)
-                            .frame(maxWidth: .infinity)
-                            .frame(maxHeight: 5)
-                            .padding()
-                            .background(
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .fill(Color.white.opacity(0.5))
-                                    RoundedRectangle(cornerRadius: 20)
-                                        .stroke(Color.black, lineWidth: 1)
-                                }
-                            )
-                    }
-                    
-                    if !selectedUsers.isEmpty {
-                        Text("Selected Users: \(selectedUsers.map { $0.displayName }.joined(separator: ", "))")
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                    }
-                    
-                    Spacer().frame(height: 20)
-                    
-                    Button(action: {
-                        if let task = task {
-                            viewModel.updateTaskDueDates(task: task, dueDates: Array(selectedDates))
-                            viewModel.updateTaskAssignedTo(task: task, assignedTo: selectedUsers.compactMap { $0.id })
-                            if let firstDate = selectedDates.first {
-                                scheduleNotification(for: firstDate)
-                            }
-                            dismiss()
-                        }
-                    }) {
-                        Text("Schedule Task")
-                            .font(.headline)
-                            .foregroundColor(.black)
-                            .padding()
-                            .frame(maxWidth: .infinity)
-                            .background(
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 4)
-                                        .fill(Color.white.opacity(0.5))
-                                    RoundedRectangle(cornerRadius: 4)
-                                        .stroke(Color.black, lineWidth: 1)
-                                }
-                            )
-                    }
-                    .padding(.bottom, 40)
-                }
-                .padding(.horizontal, 40)
+                ActionButtonView(
+                    showTimePicker: $showTimePicker,
+                    alarmTime: $alarmTime,
+                    firebaseService: firebaseService,
+                    showUserList: $showUserList,
+                    selectedUsers: $selectedUsers,
+                    task: task,
+                    viewModel: viewModel,
+                    selectedDates: $selectedDates,
+                    dismiss: dismiss
+                )
             }
             .padding(.vertical, 40)
             
@@ -279,79 +88,35 @@ struct ScheduleTaskView: View {
             }
         }
     }
-    
-    private func scheduleNotification(for date: Date) {
-        let content = UNMutableNotificationContent()
-        content.title = "Task Alarm"
-        content.body = "It's time to \(task?.title ?? "complete your task")"
-        content.sound = UNNotificationSound.default
-        
-        var dateComponents = Calendar.current.dateComponents([.year, .month, .day], from: date)
-        let timeComponents = Calendar.current.dateComponents([.hour, .minute], from: alarmTime)
-        dateComponents.hour = timeComponents.hour
-        dateComponents.minute = timeComponents.minute
-        
-        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
-        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
-        
-        UNUserNotificationCenter.current().add(request) { error in
-            if let error = error {
-                print("Notification Error: \(error.localizedDescription)")
-            }
-        }
+}
+
+struct ScheduleTaskView_Previews: PreviewProvider {
+    static var previews: some View {
+        ScheduleTaskView(viewModel: TaskViewModel(), task: Task(
+            id: "1",
+            title: "Example Task",
+            description: "This is an example task",
+            dueDates: [Date()],
+            specificDate: Date(),
+            isCompleted: false,
+            assignedTo: ["User"],
+            createdBy: "User",
+            createdAt: Date(),
+            familyId: "Family1",
+            taskColor: "Red",
+            numberOfFishes: 5
+        ))
     }
 }
 
-extension ScheduleTaskView {
-    
-    private var calendar: Calendar {
-        var calendar = Calendar.current
-        calendar.firstWeekday = 2
-        return calendar
-    }
-    
-    private func daysInMonth() -> [Date] {
-        guard let range = calendar.range(of: .day, in: .month, for: currentDate) else {
-            return []
+struct ScheduleTaskHeader: View {
+    var body: some View {
+        HStack {
+            Text("Schedule Task")
+                .font(.headline)
+            Spacer()
         }
-        return range.compactMap { day -> Date? in
-            var components = calendar.dateComponents([.year, .month], from: currentDate)
-            components.day = day
-            return calendar.date(from: components)
-        }
-    }
-    
-    private func firstWeekday() -> Int {
-        let components = calendar.dateComponents([.year, .month], from: currentDate)
-        guard let firstOfMonth = calendar.date(from: components) else {
-            return 0
-        }
-        let weekday = calendar.component(.weekday, from: firstOfMonth)
-        return (weekday + 5) % 7 // adjust so all weeks starts on Monday
-    }
-    
-    private func incrementMonth() {
-        currentDate = calendar.date(byAdding: .month, value: 1, to: currentDate) ?? currentDate
-    }
-    
-    private func decrementMonth() {
-        currentDate = calendar.date(byAdding: .month, value: -1, to: currentDate) ?? currentDate
-    }
-    
-    private func monthYearString(from date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "MMMM yyyy"
-        return formatter.string(from: date)
-    }
-    
-    private func dayString(from date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "d"
-        return formatter.string(from: date)
-    }
-    
-    private func isCurrentDate(_ date: Date) -> Bool {
-        calendar.isDate(date, inSameDayAs: Date())
+        .padding(.horizontal)
     }
 }
 
@@ -395,6 +160,213 @@ struct TaskInfoView: View {
             Spacer()
         }
         .padding()
+    }
+}
+
+struct ScheduleCalendarView: View {
+    @Binding var currentDate: Date
+    @Binding var selectedDates: Set<Date>
+    
+    var body: some View {
+        VStack {
+            HStack {
+                Button(action: {
+                    withAnimation {
+                        self.decrementMonth()
+                    }
+                }) {
+                    Image(systemName: "chevron.left")
+                        .padding()
+                        .foregroundColor(.black)
+                }
+                
+                Spacer()
+                
+                Text("\(self.monthYearString(from: currentDate))")
+                    .font(.headline)
+                
+                Spacer()
+                
+                Button(action: {
+                    withAnimation {
+                        self.incrementMonth()
+                    }
+                }) {
+                    Image(systemName: "chevron.right")
+                        .padding()
+                        .foregroundColor(.black)
+                }
+            }
+            
+            HStack {
+                ForEach(["M", "T", "O", "T", "F", "L", "S"], id: \.self) { day in
+                    Text(day)
+                        .frame(maxWidth: .infinity)
+                        .font(.caption)
+                }
+            }
+            
+            let columns = Array(repeating: GridItem(.flexible()), count: 7)
+            
+            LazyVGrid(columns: columns, spacing: 5) {
+                ForEach(0..<self.firstWeekday(), id: \.self) { _ in
+                    Text("")
+                        .frame(maxWidth: .infinity)
+                }
+                
+                ForEach(self.daysInMonth(), id: \.self) { date in
+                    ZStack {
+                        if selectedDates.contains(date) {
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.black)
+                        } else {
+                            RoundedRectangle(cornerRadius: 8)
+                                .fill(Color.clear)
+                        }
+                        
+                        if self.isCurrentDate(date) {
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(Color.black, lineWidth: 2)
+                        }
+                        
+                        Text("\(self.dayString(from: date))")
+                            .foregroundColor(
+                                selectedDates.contains(date) ? .white :
+                                    self.isCurrentDate(date) ? .black :
+                                    (date < Date() ? .gray : .black)
+                            )
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                            .padding(4)
+                            .background(Color.clear)
+                            .onTapGesture {
+                                if date >= Calendar.current.startOfDay(for: Date()) {
+                                    if selectedDates.contains(date) {
+                                        selectedDates.remove(date)
+                                    } else {
+                                        selectedDates.insert(date)
+                                    }
+                                }
+                            }
+                            .layoutPriority(1)
+                    }
+                    .frame(minWidth: 35, maxWidth: .infinity, minHeight: 35, maxHeight: 35)
+                }
+            }
+        }
+        .padding(10)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .fill(Color.white)
+                .shadow(radius: 5)
+        )
+        .padding(.horizontal)
+    }
+}
+
+struct ActionButtonView: View {
+    @Binding var showTimePicker: Bool
+    @Binding var alarmTime: Date
+    @ObservedObject var firebaseService: FirebaseService
+    @Binding var showUserList: Bool
+    @Binding var selectedUsers: Set<User>
+    var task: Task?
+    var viewModel: TaskViewModel
+    @Binding var selectedDates: Set<Date>
+    var dismiss: DismissAction
+    
+    var body: some View {
+        VStack(spacing: 10) {
+            Button(action: {
+                showTimePicker.toggle()
+            }) {
+                Text("Set Alarm")
+                    .buttonStyle()
+            }
+            .sheet(isPresented: $showTimePicker) {
+                VStack {
+                    Text("Select Alarm Time")
+                        .font(.headline)
+                        .padding()
+                    
+                    DatePicker("Alarm Time", selection: $alarmTime, displayedComponents: .hourAndMinute)
+                        .datePickerStyle(WheelDatePickerStyle())
+                        .labelsHidden()
+                        .padding()
+                    
+                    Button(action: {
+                        showTimePicker = false
+                    }) {
+                        Text("Set Alarm")
+                            .buttonStyle()
+                    }
+                }
+                .padding()
+            }
+            
+            Button(action: {
+                firebaseService.fetchUsers()
+                showUserList.toggle()
+            }) {
+                Text("Assign family member")
+                    .buttonStyle()
+            }
+            
+            if !selectedUsers.isEmpty {
+                Text("Selected Users: \(selectedUsers.map { $0.displayName }.joined(separator: ", "))")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+            }
+            
+            Spacer().frame(height: 20)
+            
+            Button(action: {
+                if let task = task {
+                    viewModel.updateTaskDueDates(task: task, dueDates: Array(selectedDates))
+                    viewModel.updateTaskAssignedTo(task: task, assignedTo: selectedUsers.compactMap { $0.id })
+                    if let firstDate = selectedDates.first {
+                        scheduleNotification(for: firstDate)
+                    }
+                    dismiss()
+                }
+            }) {
+                Text("Schedule Task")
+                    .font(.headline)
+                    .foregroundColor(.black)
+                    .padding()
+                    .frame(maxWidth: .infinity)
+                    .background(
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 4)
+                                .fill(Color.white.opacity(0.5))
+                            RoundedRectangle(cornerRadius: 4)
+                                .stroke(Color.black, lineWidth: 1)
+                        }
+                    )
+            }
+            .padding(.bottom, 40)
+        }
+        .padding(.horizontal, 40)
+    }
+    
+    private func scheduleNotification(for date: Date) {
+        let content = UNMutableNotificationContent()
+        content.title = "Task Alarm"
+        content.body = "It's time to \(task?.title ?? "complete your task")"
+        content.sound = UNNotificationSound.default
+        
+        var dateComponents = Calendar.current.dateComponents([.year, .month, .day], from: date)
+        let timeComponents = Calendar.current.dateComponents([.hour, .minute], from: alarmTime)
+        dateComponents.hour = timeComponents.hour
+        dateComponents.minute = timeComponents.minute
+        
+        let trigger = UNCalendarNotificationTrigger(dateMatching: dateComponents, repeats: false)
+        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+        
+        UNUserNotificationCenter.current().add(request) { error in
+            if let error = error {
+                print("Notification Error: \(error.localizedDescription)")
+            }
+        }
     }
 }
 
@@ -473,24 +445,55 @@ struct UsersListView: View {
     }
 }
 
-struct ScheduleTaskView_Previews: PreviewProvider {
-    static var previews: some View {
-        ScheduleTaskView(viewModel: TaskViewModel(), task: Task(
-            id: "1",
-            title: "Example Task",
-            description: "This is an example task",
-            dueDates: [Date()],
-            specificDate: Date(),
-            isCompleted: false,
-            assignedTo: ["User"],
-            createdBy: "User",
-            createdAt: Date(),
-            familyId: "Family1",
-            taskColor: "Red",
-            numberOfFishes: 5
-        ))
+extension ScheduleCalendarView {
+    
+    private var calendar: Calendar {
+        var calendar = Calendar.current
+        calendar.firstWeekday = 2
+        return calendar
+    }
+    
+    private func monthYearString(from date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "MMMM yyyy"
+        return formatter.string(from: date)
+    }
+    
+    private func firstWeekday() -> Int {
+        let components = calendar.dateComponents([.year, .month], from: currentDate)
+        guard let firstOfMonth = calendar.date(from: components) else {
+            return 0
+        }
+        let weekday = calendar.component(.weekday, from: firstOfMonth)
+        return (weekday + 5) % 7 // adjust so all weeks starts on Monday
+    }
+    
+    private func daysInMonth() -> [Date] {
+        guard let range = calendar.range(of: .day, in: .month, for: currentDate) else {
+            return []
+        }
+        return range.compactMap { day -> Date? in
+            var components = calendar.dateComponents([.year, .month], from: currentDate)
+            components.day = day
+            return calendar.date(from: components)
+        }
+    }
+    
+    private func dayString(from date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "d"
+        return formatter.string(from: date)
+    }
+    
+    private func isCurrentDate(_ date: Date) -> Bool {
+        calendar.isDate(date, inSameDayAs: Date())
+    }
+    
+    private func incrementMonth() {
+        currentDate = calendar.date(byAdding: .month, value: 1, to: currentDate) ?? currentDate
+    }
+    
+    private func decrementMonth() {
+        currentDate = calendar.date(byAdding: .month, value: -1, to: currentDate) ?? currentDate
     }
 }
-
-
-

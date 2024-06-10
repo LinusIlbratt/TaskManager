@@ -11,6 +11,7 @@
 		1B51E9D52BFF47A400313625 /* CalendarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B51E9D42BFF47A400313625 /* CalendarView.swift */; };
 		1B51E9D92BFF507600313625 /* TaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B51E9D82BFF507600313625 /* TaskView.swift */; };
 		1B51E9DB2BFF593200313625 /* ScheduleTaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B51E9DA2BFF593200313625 /* ScheduleTaskView.swift */; };
+		1B91BC932C16E1E9006E0D02 /* ButtonStyleModifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B91BC922C16E1E8006E0D02 /* ButtonStyleModifier.swift */; };
 		1B971E922BF4BCDF0059246E /* TaskManagerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B971E912BF4BCDF0059246E /* TaskManagerApp.swift */; };
 		1B971E942BF4BCDF0059246E /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B971E932BF4BCDF0059246E /* ContentView.swift */; };
 		1B971E962BF4BCE10059246E /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 1B971E952BF4BCE10059246E /* Assets.xcassets */; };
@@ -62,6 +63,7 @@
 		1B51E9D42BFF47A400313625 /* CalendarView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = CalendarView.swift; sourceTree = "<group>"; };
 		1B51E9D82BFF507600313625 /* TaskView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TaskView.swift; sourceTree = "<group>"; };
 		1B51E9DA2BFF593200313625 /* ScheduleTaskView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ScheduleTaskView.swift; sourceTree = "<group>"; };
+		1B91BC922C16E1E8006E0D02 /* ButtonStyleModifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ButtonStyleModifier.swift; sourceTree = "<group>"; };
 		1B971E8E2BF4BCDF0059246E /* TaskManager.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TaskManager.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1B971E912BF4BCDF0059246E /* TaskManagerApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskManagerApp.swift; sourceTree = "<group>"; };
 		1B971E932BF4BCDF0059246E /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
@@ -205,6 +207,7 @@
 				1B971E932BF4BCDF0059246E /* ContentView.swift */,
 				1B971EC62BF4CAE10059246E /* TaskListView.swift */,
 				E13CABFC2C08DBBE00D17383 /* NewGroupView.swift */,
+				1B91BC922C16E1E8006E0D02 /* ButtonStyleModifier.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -390,6 +393,7 @@
 				E13CAC062C12D2F400D17383 /* TabViewAppearance.swift in Sources */,
 				E13CABF32C08D75E00D17383 /* TopBar.swift in Sources */,
 				E13CABFD2C08DBBE00D17383 /* NewGroupView.swift in Sources */,
+				1B91BC932C16E1E9006E0D02 /* ButtonStyleModifier.swift in Sources */,
 				1B51E9D52BFF47A400313625 /* CalendarView.swift in Sources */,
 				1B971EC32BF4CA250059246E /* TaskViewModel.swift in Sources */,
 				1B971EC92BF4CB3F0059246E /* FirebaseService.swift in Sources */,
