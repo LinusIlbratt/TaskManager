@@ -26,12 +26,12 @@ struct TaskView: View {
                 ScrollView {
                      ForEach(viewModel.tasks) { task in
                          HStack {
-                             NavigationLink(destination: ScheduleTaskView(viewModel: viewModel, task: task)) 
-                                              .environmentObject(userViewModel)) {
-                                 TaskCardListView(task: task, taskVM: viewModel)
-                                     .padding(.horizontal)
-                                     .padding(.top, 5)
-                             }
+                             NavigationLink(destination: ScheduleTaskView(viewModel: viewModel, task: task)
+                                .environmentObject(userViewModel)) {
+                                    TaskCardListView(task: task, taskVM: viewModel)
+                                        .padding(.horizontal)
+                                        .padding(.top, 5)
+                                }
 
                              Spacer()
 
