@@ -26,7 +26,7 @@
 		1BAE0BAA2BFB208A00330EC1 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 1BAE0BA92BFB208A00330EC1 /* FirebaseAuth */; };
 		1BAE0BAC2BFB208A00330EC1 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 1BAE0BAB2BFB208A00330EC1 /* FirebaseFirestore */; };
 		1BAE0BAE2BFB208A00330EC1 /* FirebaseFirestoreSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 1BAE0BAD2BFB208A00330EC1 /* FirebaseFirestoreSwift */; };
-		CE2020E72C14C040009747CC /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = CE2020E62C14C040009747CC /* GoogleService-Info.plist */; };
+		CD82A5AC2C14DF3300B96D95 /* GoogleService-Info.plist in Resources */ = {isa = PBXBuildFile; fileRef = CD82A5AB2C14DF3300B96D95 /* GoogleService-Info.plist */; };
 		E13CABF32C08D75E00D17383 /* TopBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = E13CABF22C08D75E00D17383 /* TopBar.swift */; };
 		E13CABF52C08D76500D17383 /* TaskDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E13CABF42C08D76500D17383 /* TaskDetailView.swift */; };
 		E13CABF72C08D76B00D17383 /* TaskCardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E13CABF62C08D76B00D17383 /* TaskCardView.swift */; };
@@ -77,7 +77,7 @@
 		1B971EC62BF4CAE10059246E /* TaskListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskListView.swift; sourceTree = "<group>"; };
 		1B971EC82BF4CB3F0059246E /* FirebaseService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirebaseService.swift; sourceTree = "<group>"; };
 		1B971ECA2BF4CB5B0059246E /* DateFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateFormatter.swift; sourceTree = "<group>"; };
-		CE2020E62C14C040009747CC /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
+		CD82A5AB2C14DF3300B96D95 /* GoogleService-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "GoogleService-Info.plist"; sourceTree = "<group>"; };
 		E13CABF22C08D75E00D17383 /* TopBar.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TopBar.swift; sourceTree = "<group>"; };
 		E13CABF42C08D76500D17383 /* TaskDetailView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TaskDetailView.swift; sourceTree = "<group>"; };
 		E13CABF62C08D76B00D17383 /* TaskCardView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TaskCardView.swift; sourceTree = "<group>"; };
@@ -122,7 +122,7 @@
 		1B971E852BF4BCDF0059246E = {
 			isa = PBXGroup;
 			children = (
-				CE2020E62C14C040009747CC /* GoogleService-Info.plist */,
+				CD82A5AB2C14DF3300B96D95 /* GoogleService-Info.plist */,
 				1B971E902BF4BCDF0059246E /* TaskManager */,
 				1B971EA12BF4BCE10059246E /* TaskManagerTests */,
 				1B971EAB2BF4BCE10059246E /* TaskManagerUITests */,
@@ -350,7 +350,7 @@
 			files = (
 				1B971E992BF4BCE10059246E /* Preview Assets.xcassets in Resources */,
 				1B971E962BF4BCE10059246E /* Assets.xcassets in Resources */,
-				CE2020E72C14C040009747CC /* GoogleService-Info.plist in Resources */,
+				CD82A5AC2C14DF3300B96D95 /* GoogleService-Info.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -560,7 +560,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"TaskManager/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = WZW96Y53G3;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -589,7 +589,7 @@
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_ASSET_PATHS = "\"TaskManager/Preview Content\"";
-				DEVELOPMENT_TEAM = "";
+				DEVELOPMENT_TEAM = WZW96Y53G3;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;

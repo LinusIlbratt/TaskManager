@@ -269,6 +269,19 @@ class TaskViewModel: ObservableObject {
                     self?.users = users.compactMap { $0 }
                 })
                 .store(in: &cancellables)
-        }   
+        }  
+    
+    //Function to delete task
+    //after deletion, update task list
+    func deleteTask(task: Task) {
+            guard let taskId = task.id else { return }
+            db.collection("tasks").document(taskId).delete { [weak self] error in
+                if let error = error {
+                    print("Error deleting task: \(error.localizedDescription)")
+                } else {
+                    self?.fetchTasks()
+                }
+            }
+    }
 }
 
