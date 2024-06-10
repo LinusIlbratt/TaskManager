@@ -8,9 +8,6 @@
 import SwiftUI
 import UserNotifications
 
-import SwiftUI
-import UserNotifications
-
 struct ScheduleTaskView: View {
     @State private var currentDate = Date()
     @State private var selectedDates: Set<Date> = []
@@ -70,7 +67,7 @@ struct ScheduleTaskView: View {
             .padding(.vertical, 40)
             
             if showGroupList {
-                GroupsListView(isPresented: $showGroupList, selectedGroups: $selectedGroups, selectedUsers: $selectedUsers)
+                SelectListView(isPresented: $showGroupList, selectedGroups: $selectedGroups, selectedUsers: $selectedUsers)
                     .environmentObject(userVM)
                     .zIndex(1)
             }
@@ -94,6 +91,7 @@ struct ScheduleTaskView: View {
         }
     }
 }
+
 
 
 
@@ -277,7 +275,7 @@ struct ActionButtonView: View {
     @ObservedObject var firebaseService: FirebaseService
     @Binding var showGroupList: Bool
     @Binding var selectedGroups: Set<Groups>
-    @Binding var selectedUsers: Set<User>  // Lägg till detta
+    @Binding var selectedUsers: Set<User>
     var task: Task?
     var viewModel: TaskViewModel
     @Binding var selectedDates: Set<Date>
@@ -326,8 +324,14 @@ struct ActionButtonView: View {
                     .foregroundColor(.gray)
             }
             
+            if !selectedUsers.isEmpty {
+                Text("Selected Users: \(selectedUsers.map { $0.displayName }.joined(separator: ", "))")
+                    .font(.caption)
+                    .foregroundColor(.gray)
+            }
+            
             if showGroupList {
-                GroupsListView(isPresented: $showGroupList, selectedGroups: $selectedGroups, selectedUsers: $selectedUsers)  // Lägg till selectedUsers
+                SelectListView(isPresented: $showGroupList, selectedGroups: $selectedGroups, selectedUsers: $selectedUsers)
                     .environmentObject(userViewModel)
             }
             
@@ -386,45 +390,77 @@ struct ActionButtonView: View {
 
 
 
-struct GroupsListView: View {
+
+struct SelectListView: View {
+    enum SelectionType {
+        case groups
+        case users
+    }
+    
     @EnvironmentObject var userViewModel: UserViewModel
     @Binding var isPresented: Bool
     @Binding var selectedGroups: Set<Groups>
     @Binding var selectedUsers: Set<User>
-    @State private var showUserListView = false
     @State private var groupUsers: [User] = []
-
+    @State private var selectionType: SelectionType = .groups
+    @State private var tempSelectedUsers: Set<User> = []
+    
     var body: some View {
         GeometryReader { geometry in
             VStack {
-                Text("Select Group")
+                Text(selectionType == .groups ? "Select Group" : "Select User")
                     .font(.headline)
                     .padding()
                 
                 List {
-                    ForEach(userViewModel.groups, id: \.id) { group in
-                        HStack {
-                            Text(group.name)
-                            Spacer()
-                            if selectedGroups.contains(group) {
-                                Image(systemName: "checkmark")
-                                    .foregroundColor(.blue)
+                    if selectionType == .groups {
+                        ForEach(userViewModel.groups, id: \.id) { group in
+                            HStack {
+                                Text(group.name)
+                                Spacer()
+                                if selectedGroups.contains(group) {
+                                    Image(systemName: "checkmark")
+                                        .foregroundColor(.blue)
+                                }
+                            }
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                fetchUsersForGroup(groupID: group.id ?? "")
+                                self.selectionType = .users
                             }
                         }
-                        .contentShape(Rectangle())
-                        .onTapGesture {
-                            self.showUserListView.toggle()
-                            // Fetch users for the selected group
-                            fetchUsersForGroup(groupID: group.id ?? "")
+                    } else {
+                        ForEach(groupUsers, id: \.id) { user in
+                            HStack {
+                                Text(user.displayName)
+                                Spacer()
+                                if tempSelectedUsers.contains(user) {
+                                    Image(systemName: "checkmark")
+                                        .foregroundColor(.blue)
+                                }
+                            }
+                            .contentShape(Rectangle())
+                            .onTapGesture {
+                                if tempSelectedUsers.contains(user) {
+                                    tempSelectedUsers.remove(user)
+                                } else {
+                                    tempSelectedUsers.insert(user)
+                                }
+                            }
                         }
                     }
                 }
                 
                 HStack {
                     Button(action: {
-                        isPresented = false
+                        if selectionType == .users {
+                            selectionType = .groups
+                            tempSelectedUsers.removeAll()
+                        } else {
+                            isPresented = false
+                        }
                     }) {
-                        Text("Close")
+                        Text(selectionType == .users ? "Back" : "Close")
                             .padding()
                             .foregroundColor(.black)
                             .background(
@@ -437,6 +473,26 @@ struct GroupsListView: View {
                             )
                     }
                     .padding()
+                    
+                    if selectionType == .users {
+                        Button(action: {
+                            selectedUsers.formUnion(tempSelectedUsers)
+                            isPresented = false
+                        }) {
+                            Text("Add")
+                                .padding()
+                                .foregroundColor(.black)
+                                .background(
+                                    ZStack {
+                                        RoundedRectangle(cornerRadius: 4)
+                                            .fill(Color.white.opacity(0.5))
+                                        RoundedRectangle(cornerRadius: 4)
+                                            .stroke(Color.black, lineWidth: 1)
+                                    }
+                                )
+                        }
+                        .padding()
+                    }
                 }
             }
             .frame(width: 300, height: 400)
@@ -444,13 +500,11 @@ struct GroupsListView: View {
             .cornerRadius(20)
             .shadow(radius: 20)
             .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
-            .sheet(isPresented: $showUserListView) {
-                UsersListView(isPresented: $showUserListView, selectedUsers: $selectedUsers, groupUsers: groupUsers)
-                    .environmentObject(userViewModel)
-            }
             .onAppear {
-                userViewModel.getMyGroups { fetchedGroups in
-                    userViewModel.groups = fetchedGroups
+                if selectionType == .groups {
+                    userViewModel.getMyGroups { fetchedGroups in
+                        userViewModel.groups = fetchedGroups
+                    }
                 }
             }
         }
@@ -465,66 +519,6 @@ struct GroupsListView: View {
 
 
 
-
-struct UsersListView: View {
-    @EnvironmentObject var userViewModel: UserViewModel
-    @Binding var isPresented: Bool
-    @Binding var selectedUsers: Set<User>
-    var groupUsers: [User]  // Användare i vald grupp
-
-    var body: some View {
-        GeometryReader { geometry in
-            VStack {
-                Text("Select User")
-                    .font(.headline)
-                    .padding()
-                
-                List(groupUsers) { user in
-                    HStack {
-                        Text(user.displayName)
-                        Spacer()
-                        if selectedUsers.contains(user) {
-                            Image(systemName: "checkmark")
-                                .foregroundColor(.blue)
-                        }
-                    }
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        if selectedUsers.contains(user) {
-                            selectedUsers.remove(user)
-                        } else {
-                            selectedUsers.insert(user)
-                        }
-                    }
-                }
-                
-                HStack {
-                    Button(action: {
-                        isPresented = false
-                    }) {
-                        Text("Close")
-                            .padding()
-                            .foregroundColor(.black)
-                            .background(
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 4)
-                                        .fill(Color.white.opacity(0.5))
-                                    RoundedRectangle(cornerRadius: 4)
-                                        .stroke(Color.black, lineWidth: 1)
-                                }
-                            )
-                    }
-                    .padding()
-                }
-            }
-            .frame(width: 300, height: 400)
-            .background(Color.white)
-            .cornerRadius(20)
-            .shadow(radius: 20)
-            .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
-        }
-    }
-}
 
 
 extension ScheduleCalendarView {
