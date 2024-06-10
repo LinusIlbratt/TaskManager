@@ -8,25 +8,29 @@
 import SwiftUI
 import UserNotifications
 
+import SwiftUI
+import UserNotifications
+
 struct ScheduleTaskView: View {
     @State private var currentDate = Date()
     @State private var selectedDates: Set<Date> = []
     @State private var showGroupList = false
     @State private var selectedGroups: Set<Groups> = []
+    @State private var selectedUsers: Set<User> = []
     @State private var showTimePicker = false
     @State private var alarmTime = Date()
     @ObservedObject var viewModel: TaskViewModel
-    @ObservedObject var userVM: UserViewModel
+    @EnvironmentObject var userVM: UserViewModel
     @StateObject var firebaseService = FirebaseService()
     @Environment(\.dismiss) var dismiss
     var task: Task?
     
     init(viewModel: TaskViewModel, task: Task?) {
-            self.viewModel = viewModel
-            self.userVM = UserViewModel() // Initiera userVM här
-            self.task = task
-            _selectedDates = State(initialValue: Set(task?.dueDates ?? []))
-        }
+        self.viewModel = viewModel
+        self.task = task
+        _selectedDates = State(initialValue: Set(task?.dueDates ?? []))
+    }
+    
     var body: some View {
         ZStack(alignment: .top) {
             VStack {
@@ -56,6 +60,7 @@ struct ScheduleTaskView: View {
                     firebaseService: firebaseService,
                     showGroupList: $showGroupList,
                     selectedGroups: $selectedGroups,
+                    selectedUsers: $selectedUsers,
                     task: task,
                     viewModel: viewModel,
                     selectedDates: $selectedDates,
@@ -65,7 +70,7 @@ struct ScheduleTaskView: View {
             .padding(.vertical, 40)
             
             if showGroupList {
-                GroupsListView(isPresented: $showGroupList, selectedGroups: $selectedGroups)
+                GroupsListView(isPresented: $showGroupList, selectedGroups: $selectedGroups, selectedUsers: $selectedUsers)
                     .environmentObject(userVM)
                     .zIndex(1)
             }
@@ -89,6 +94,8 @@ struct ScheduleTaskView: View {
         }
     }
 }
+
+
 
 
 struct ScheduleTaskView_Previews: PreviewProvider {
@@ -270,6 +277,7 @@ struct ActionButtonView: View {
     @ObservedObject var firebaseService: FirebaseService
     @Binding var showGroupList: Bool
     @Binding var selectedGroups: Set<Groups>
+    @Binding var selectedUsers: Set<User>  // Lägg till detta
     var task: Task?
     var viewModel: TaskViewModel
     @Binding var selectedDates: Set<Date>
@@ -319,7 +327,7 @@ struct ActionButtonView: View {
             }
             
             if showGroupList {
-                GroupsListView(isPresented: $showGroupList, selectedGroups: $selectedGroups)
+                GroupsListView(isPresented: $showGroupList, selectedGroups: $selectedGroups, selectedUsers: $selectedUsers)  // Lägg till selectedUsers
                     .environmentObject(userViewModel)
             }
             
@@ -328,7 +336,7 @@ struct ActionButtonView: View {
             Button(action: {
                 if let task = task {
                     viewModel.updateTaskDueDates(task: task, dueDates: Array(selectedDates))
-                    viewModel.updateTaskAssignedTo(task: task, assignedTo: selectedGroups.compactMap { $0.id })
+                    viewModel.updateTaskAssignedTo(task: task, assignedTo: selectedUsers.compactMap { $0.id })
                     if let firstDate = selectedDates.first {
                         scheduleNotification(for: firstDate)
                     }
@@ -377,11 +385,14 @@ struct ActionButtonView: View {
 }
 
 
+
 struct GroupsListView: View {
     @EnvironmentObject var userViewModel: UserViewModel
     @Binding var isPresented: Bool
     @Binding var selectedGroups: Set<Groups>
-    @State private var groups: [Groups] = []
+    @Binding var selectedUsers: Set<User>
+    @State private var showUserListView = false
+    @State private var groupUsers: [User] = []
 
     var body: some View {
         GeometryReader { geometry in
@@ -390,21 +401,21 @@ struct GroupsListView: View {
                     .font(.headline)
                     .padding()
                 
-                List(groups) { group in
-                    HStack {
-                        Text(group.name)
-                        Spacer()
-                        if selectedGroups.contains(group) {
-                            Image(systemName: "checkmark")
-                                .foregroundColor(.blue)
+                List {
+                    ForEach(userViewModel.groups, id: \.id) { group in
+                        HStack {
+                            Text(group.name)
+                            Spacer()
+                            if selectedGroups.contains(group) {
+                                Image(systemName: "checkmark")
+                                    .foregroundColor(.blue)
+                            }
                         }
-                    }
-                    .contentShape(Rectangle())
-                    .onTapGesture {
-                        if selectedGroups.contains(group) {
-                            selectedGroups.remove(group)
-                        } else {
-                            selectedGroups.insert(group)
+                        .contentShape(Rectangle())
+                        .onTapGesture {
+                            self.showUserListView.toggle()
+                            // Fetch users for the selected group
+                            fetchUsersForGroup(groupID: group.id ?? "")
                         }
                     }
                 }
@@ -426,22 +437,6 @@ struct GroupsListView: View {
                             )
                     }
                     .padding()
-                    
-                    Button(action: {
-                        isPresented = false
-                    }) {
-                        Text("Add")
-                            .padding()
-                            .foregroundColor(.black)
-                            .background(
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 4)
-                                        .fill(Color.white.opacity(0.5))
-                                    RoundedRectangle(cornerRadius: 4)
-                                        .stroke(Color.black, lineWidth: 1)
-                                }
-                            )
-                    }
                 }
             }
             .frame(width: 300, height: 400)
@@ -449,23 +444,34 @@ struct GroupsListView: View {
             .cornerRadius(20)
             .shadow(radius: 20)
             .position(x: geometry.size.width / 2, y: geometry.size.height / 2)
+            .sheet(isPresented: $showUserListView) {
+                UsersListView(isPresented: $showUserListView, selectedUsers: $selectedUsers, groupUsers: groupUsers)
+                    .environmentObject(userViewModel)
+            }
             .onAppear {
                 userViewModel.getMyGroups { fetchedGroups in
-                    self.groups = fetchedGroups
+                    userViewModel.groups = fetchedGroups
                 }
             }
+        }
+    }
+    
+    private func fetchUsersForGroup(groupID: String) {
+        userViewModel.getGroupMembers(groupID: groupID) { users in
+            self.groupUsers = users
         }
     }
 }
 
 
 
-/*
+
 struct UsersListView: View {
-    @EnvironmentObject var firebaseService: FirebaseService
+    @EnvironmentObject var userViewModel: UserViewModel
     @Binding var isPresented: Bool
     @Binding var selectedUsers: Set<User>
-    
+    var groupUsers: [User]  // Användare i vald grupp
+
     var body: some View {
         GeometryReader { geometry in
             VStack {
@@ -473,7 +479,7 @@ struct UsersListView: View {
                     .font(.headline)
                     .padding()
                 
-                List(firebaseService.users) { user in
+                List(groupUsers) { user in
                     HStack {
                         Text(user.displayName)
                         Spacer()
@@ -509,22 +515,6 @@ struct UsersListView: View {
                             )
                     }
                     .padding()
-                    
-                    Button(action: {
-                        isPresented = false
-                    }) {
-                        Text("Add")
-                            .padding()
-                            .foregroundColor(.black)
-                            .background(
-                                ZStack {
-                                    RoundedRectangle(cornerRadius: 4)
-                                        .fill(Color.white.opacity(0.5))
-                                    RoundedRectangle(cornerRadius: 4)
-                                        .stroke(Color.black, lineWidth: 1)
-                                }
-                            )
-                    }
                 }
             }
             .frame(width: 300, height: 400)
@@ -535,7 +525,7 @@ struct UsersListView: View {
         }
     }
 }
- */
+
 
 extension ScheduleCalendarView {
     
