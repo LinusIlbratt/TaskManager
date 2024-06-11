@@ -65,14 +65,26 @@ struct TaskListView: View {
                             ScrollView {
                                 //LazyVStack instead of List to allow for scrollview
                                 LazyVStack {
-                                    ForEach(filteredTasks) { task in
-                                        // Card for each task
-                                        TaskCardView(
-                                            task: task,
-                                            taskVM: taskVM,
-                                            startPosition: $startPosition,
-                                            onTaskCompleted: {
-                                                //show animation only on upcoming tasks
+                                    if filteredTasks.isEmpty {
+                                        VStack {
+                                            Spacer()
+                                            Text("No tasks for today")
+                                                .foregroundColor(.gray)
+                                                .font(.largeTitle)
+                                                .padding()
+                                            Spacer()
+                                        }
+                                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                                    } else {
+                                        
+                                        ForEach(filteredTasks) { task in
+                                            // Card for each task
+                                            TaskCardView(
+                                                task: task,
+                                                taskVM: taskVM,
+                                                startPosition: $startPosition,
+                                                onTaskCompleted: {
+                                                    //show animation only on upcoming tasks
                                                     if taskVM.ourFilter == .upcoming {
                                                         self.fishCount = task.numberOfFishes
                                                         self.showFish = true
@@ -81,10 +93,11 @@ struct TaskListView: View {
                                                         }
                                                     }
                                                 },
-                                            selectedDate: $selectedDate
-                                        )
-                                        .padding(.vertical, 5)
-                                        .background(Color.clear)
+                                                selectedDate: $selectedDate
+                                            )
+                                            .padding(.vertical, 5)
+                                            .background(Color.clear)
+                                        }
                                     }
                                 }
                             }
