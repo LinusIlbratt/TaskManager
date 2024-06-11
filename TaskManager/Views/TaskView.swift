@@ -127,14 +127,14 @@ struct TaskCardListView: View {
                         .font(.headline)
                         .foregroundColor(.black)
                         
-                    // Print formatted due dates
-                    if let dueDates = task.dueDates {
-                        ForEach(dueDates, id: \.self) { date in
-                            Text(formatDueDate(date: date))
-                                .font(.subheadline)
-                                .foregroundColor(.gray)
-                        }
-                    }
+//                    // Print formatted due dates
+//                    if let dueDates = task.dueDates {
+//                        ForEach(dueDates, id: \.self) { date in
+//                            Text(formatDueDate(date: date))
+//                                .font(.subheadline)
+//                                .foregroundColor(.gray)
+//                        }
+//                    }
                 }
                 Spacer()
             }

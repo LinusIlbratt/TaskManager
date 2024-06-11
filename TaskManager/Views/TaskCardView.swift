@@ -135,7 +135,7 @@ struct TaskCardView: View {
                     toggleTaskCompletion()
                 }
             }) {
-                Text(isCompletedForSelectedDate() ? "Mark as not done" : "Mark as Done")
+                Text(isCompletedForSelectedDate() ? "Undo" : "Done")
                     .padding(.horizontal, 10)
                     .padding(.vertical, 10)
                     .background(isCompletedForSelectedDate() ? Color.gray.opacity(0.8) : Color.gray.opacity(0.2))
