@@ -36,7 +36,7 @@ struct ContentView: View {
                         TaskView()
                     }
                     .tabItem {
-                        Label("Scheduele", systemImage: "pencil")
+                        Label("Schedule", systemImage: "pencil")
                             .font(.title)
                             .padding()
                     }
@@ -69,7 +69,16 @@ struct SignInView : View {
     
     var auth = Auth.auth()
     var body : some View {
+        VStack(alignment: .center){
+            Image("taskFish")
+                .resizable()
+                .scaledToFit()
+                .frame(height: 300)
+                .padding(.top, 5)
+        }
+        
         VStack(alignment: .leading, spacing: 20) {
+            
             Text("Log in")
                 .font(.largeTitle)
                 .bold()
@@ -131,7 +140,7 @@ struct SignInView : View {
                 
                 
                 Button(action: {
-	                    if userName.isEmpty {
+                        if userName.isEmpty {
                         alertTitle = "An error occured"
                         alertMessage = "You missed fill in your email, try again"
                         showAlert = true
@@ -309,5 +318,5 @@ struct SignInView : View {
     
 }
 #Preview {
-    ProfileView(signedIn: .constant(true))
+    ContentView()
 }

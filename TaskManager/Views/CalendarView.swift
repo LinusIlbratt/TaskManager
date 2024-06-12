@@ -187,3 +187,9 @@ extension Date {
         return Calendar.current.component(.month, from: self)
     }
 }
+
+struct CalendarView_Previews: PreviewProvider {
+    static var previews: some View {
+        CalendarView(selectedDate: .constant(Date()), taskListAvailable: .constant([]))
+    }
+}

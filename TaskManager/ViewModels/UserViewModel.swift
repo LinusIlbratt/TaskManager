@@ -155,7 +155,6 @@ class UserViewModel: ObservableObject {
                     }
                 }
             }
-
         }
     }
     
@@ -165,14 +164,13 @@ class UserViewModel: ObservableObject {
         userRef.updateData([
             "groups": FieldValue.arrayRemove([groupID])
         ]) {error in
-            if let error = error {
+            if error != nil {
                 print("remove faileed")
             } else {
                 print("remove success")
             }
             completion(error)
         }
-        
     }
     
     func addUser(user : User) {
@@ -307,5 +305,4 @@ class UserViewModel: ObservableObject {
             completion(users)
         }
     }
-
 }

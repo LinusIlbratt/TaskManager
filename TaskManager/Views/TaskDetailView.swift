@@ -99,3 +99,4 @@ struct TaskDetailView: View {
         return task.completedDates?.contains(where: { Calendar.current.isDate($0, inSameDayAs: selectedDate) }) ?? false
     }
 }
+
