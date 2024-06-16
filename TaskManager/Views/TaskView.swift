@@ -10,7 +10,7 @@ import SwiftUI
 
 struct TaskView: View {
     @StateObject private var viewModel = TaskViewModel()
-    @StateObject private var userViewModel = UserViewModel()  // Lägg till UserViewModel här
+    @StateObject private var userViewModel = UserViewModel()
     @State private var showingAddTaskView = false
     @State private var selectedTask: Task? = nil
     
@@ -66,7 +66,7 @@ struct TaskView: View {
                         )
                 }
                 .padding(.horizontal, 20)
-                .padding(.bottom, 40) // This will add fixed space below the button to avoid being hidden by TabView
+                .padding(.bottom, 40)
             }
             .navigationTitle("")
             .navigationBarHidden(true)
@@ -156,8 +156,6 @@ struct TaskCardListView: View {
 }
 
 
-
-
 struct AddTaskView: View {
     @ObservedObject var viewModel: TaskViewModel
     @Environment(\.presentationMode) var presentationMode
@@ -186,7 +184,7 @@ struct AddTaskView: View {
                         .shadow(radius: 1)
                         .padding(.horizontal, 16)
                     
-                    /*TextField("Select category", text: $viewModel.assignedTo)
+                    /*TextField("Select category", text: $viewModel.category)
                         .padding()
                         .background(Color.white)
                         .cornerRadius(10)
@@ -199,8 +197,6 @@ struct AddTaskView: View {
                         .cornerRadius(10)
                         .shadow(radius: 1)
                         .padding(.horizontal, 16)
-                    
-                    //Choose if you want a notification
                     
                 }
                 

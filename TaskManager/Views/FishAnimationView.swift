@@ -20,3 +20,9 @@ struct FishAnimationView: View {
     }
 }
 
+struct FishAnimationView_Previews: PreviewProvider {
+    static var previews: some View {
+        FishAnimationView(animationTrigger: .constant(true), startPosition: CGPoint(x: 0, y: 0), endPosition: CGPoint(x: 100, y: 100))
+    }
+}
+
